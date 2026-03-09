@@ -49,7 +49,11 @@ const Auditor: React.FC = () => {
       setTimeout(() => setLoadingStatus('Doctor Agent: Analyzing macros & GI...'), 1000);
       setTimeout(() => setLoadingStatus('Chef Agent: Searching local markets for swaps...'), 3500);
 
-      const auditData = await auditRecipeWithAI(inputText);
+      // Get user profile from local storage
+      const savedProfile = localStorage.getItem('userProfile');
+      const userProfile = savedProfile ? JSON.parse(savedProfile) : undefined;
+
+      const auditData = await auditRecipeWithAI(inputText, userProfile);
       
       // Ensure the "simulation" lasts at least 4.5 seconds so the user sees the messages
       setTimeout(() => {

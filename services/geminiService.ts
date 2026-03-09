@@ -1,14 +1,28 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AuditResult } from "../types";
+import { AuditResult, UserProfile } from "../types";
 
 const apiKey = process.env.API_KEY || "";
 const ai = new GoogleGenAI({ apiKey });
 
 const modelName = "gemini-3-flash-preview";
 
-export const generateMealPlan = async (): Promise<Record<string, Record<string, string>>> => {
+export const generateMealPlan = async (userProfile?: UserProfile): Promise<Record<string, Record<string, string>>> => {
   if (!apiKey) {
     throw new Error("API Key is missing.");
+  }
+
+  let profileContext = "";
+  if (userProfile) {
+    profileContext = `
+      User Profile Context:
+      - Age: ${userProfile.age}
+      - Diabetes Type: ${userProfile.type}
+      - Dietary Preferences: ${userProfile.dietaryPreferences.join(', ') || 'None'}
+      - Allergens: ${userProfile.allergens.join(', ') || 'None'}
+      - Medical Restrictions: ${userProfile.medicalDetails?.restrictions || 'None'}
+      
+      CRITICAL: You MUST strictly adhere to the user's allergens and dietary preferences. Do not include any ingredients they are allergic to.
+    `;
   }
 
   const systemInstruction = `
@@ -16,6 +30,7 @@ export const generateMealPlan = async (): Promise<Record<string, Record<string, 
     Generate a 7-day meal plan for a diabetic patient in the Philippines.
     Include Breakfast, Lunch, Dinner, and Snack for each day (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
     Focus on low glycemic index, Filipino cuisine, and healthy swaps.
+    ${profileContext}
     Return ONLY a JSON object where the keys are the days of the week ('Mon', 'Tue', etc.) and the values are objects with keys 'Breakfast', 'Lunch', 'Dinner', 'Snack' and string values representing the meal.
   `;
 
@@ -166,9 +181,23 @@ export const evaluateWeeklyPlan = async (plan: Record<string, Record<string, str
   }
 };
 
-export const auditRecipeWithAI = async (recipeInput: string): Promise<AuditResult> => {
+export const auditRecipeWithAI = async (recipeInput: string, userProfile?: UserProfile): Promise<AuditResult> => {
   if (!apiKey) {
     throw new Error("API Key is missing.");
+  }
+
+  let profileContext = "";
+  if (userProfile) {
+    profileContext = `
+      User Profile Context:
+      - Age: ${userProfile.age}
+      - Diabetes Type: ${userProfile.type}
+      - Dietary Preferences: ${userProfile.dietaryPreferences.join(', ') || 'None'}
+      - Allergens: ${userProfile.allergens.join(', ') || 'None'}
+      - Medical Restrictions: ${userProfile.medicalDetails?.restrictions || 'None'}
+      
+      CRITICAL: You MUST strictly adhere to the user's allergens and dietary preferences. Do not suggest any ingredients they are allergic to.
+    `;
   }
 
   const systemInstruction = `
@@ -183,6 +212,8 @@ export const auditRecipeWithAI = async (recipeInput: string): Promise<AuditResul
     - Suggests realistic "Smart Swaps" available in a typical Philippines 'palengke' or supermarket.
     - Focuses on flavor preservation while lowering GI.
     - Suggests Adlai, Brown Rice, Cauliflower Rice, Stevia, Monkfruit, Tofu, Monggo, Malunggay, etc.
+
+    ${profileContext}
 
     Your Output MUST be strictly valid JSON matching the schema provided.
   `;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Home from './pages/Home';
 import Auditor from './pages/Auditor';
 import MealPlan from './pages/MealPlan';
+import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -16,7 +17,7 @@ const App: React.FC = () => {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    setCurrentView(ViewState.HOME);
+    setCurrentView(ViewState.AUDITOR);
   };
 
   const handleLogout = () => {
@@ -26,14 +27,15 @@ const App: React.FC = () => {
 
   const renderView = () => {
     switch (currentView) {
-      case ViewState.HOME: return <Home changeView={setCurrentView} />;
+      case ViewState.HOME: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
       case ViewState.AUDITOR: return isAuthenticated ? <Auditor /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
       case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+      case ViewState.PROFILE: return isAuthenticated ? <Dashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
       case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
       case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleLogin} />;
       case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} />;
       case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-      default: return <Home changeView={setCurrentView} />;
+      default: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
     }
   };
 
@@ -53,7 +55,7 @@ const App: React.FC = () => {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-                <div className="flex items-center cursor-pointer" onClick={() => setCurrentView(ViewState.HOME)}>
+                <div className="flex items-center cursor-pointer" onClick={() => setCurrentView(isAuthenticated ? ViewState.AUDITOR : ViewState.HOME)}>
                     <div className="w-8 h-8 bg-gradient-to-br from-primary to-teal-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm">
                         D
                     </div>
@@ -64,10 +66,11 @@ const App: React.FC = () => {
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex space-x-2">
-                    <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />
+                    {!isAuthenticated && <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />}
                     
                     {isAuthenticated && (
                         <>
+                            <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
                             <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
                             <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
                             <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
@@ -115,10 +118,11 @@ const App: React.FC = () => {
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
             <div className="md:hidden bg-white border-t border-gray-100 p-4 space-y-2 shadow-lg">
-                <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />
+                {!isAuthenticated && <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />}
                 
                 {isAuthenticated && (
                     <>
+                        <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
                         <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
                         <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
                         <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />

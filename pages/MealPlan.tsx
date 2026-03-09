@@ -26,7 +26,11 @@ const MealPlan: React.FC = () => {
     setError(null);
     setEvaluations(null);
     try {
-      const newPlan = await generateMealPlan();
+      // Get user profile from local storage
+      const savedProfile = localStorage.getItem('userProfile');
+      const userProfile = savedProfile ? JSON.parse(savedProfile) : undefined;
+      
+      const newPlan = await generateMealPlan(userProfile);
       setPlan(newPlan);
     } catch (err) {
       console.error(err);

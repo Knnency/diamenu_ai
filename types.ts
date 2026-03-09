@@ -43,6 +43,15 @@ export enum ViewState {
   SETTINGS
 }
 
+export interface BloodSugarLog {
+  id: string;
+  date: string; // ISO string or simple date
+  time: string;
+  value: number; // mg/dL
+  context: 'Fasting' | 'Before Meal' | 'After Meal' | 'Bedtime';
+  notes?: string;
+}
+
 export interface UserProfile {
   name: string;
   age: number;

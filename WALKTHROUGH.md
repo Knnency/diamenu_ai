@@ -5,15 +5,27 @@ Welcome to **DiaMenu**, your AI-powered dietary assistant designed specifically 
 ---
 
 ## 🧭 Navigation
-At the top of the screen (or via the hamburger menu on mobile), you will find the main navigation bar. You can use this to switch between the core features of the app:
-- **Home:** Your dashboard and overview.
+At the top of the screen (or via the hamburger menu on mobile), you will find the main navigation bar. You can use this to switch between the core features of the app. Note that you must be logged in to access most features:
+- **Dashboard:** Track your blood sugar trends over time.
 - **Recipe Auditor:** Analyze specific meals or recipes.
 - **Meal Plan:** Manage your 7-day weekly dietary schedule.
+- **Settings:** Update your profile, dietary preferences, and allergens.
 
 ---
 
-## 🩺 Feature 1: Recipe Auditor
-The Recipe Auditor is your personal "Digital Care Team." It uses a dual-agent AI system (a strict Endocrinologist and a creative Filipino Home Cook) to evaluate your meals.
+## 📈 Feature 1: Dashboard (Blood Sugar Tracking)
+The Dashboard allows you to log and visualize your blood sugar readings over time.
+
+### How to use it:
+1. **Navigate** to the "Dashboard" page.
+2. **Log a Reading:** Use the "Log Reading" form to enter your blood sugar value (mg/dL), date, time, and context (e.g., Fasting, Before Meal, After Meal). You can also add optional notes.
+3. **View Trends:** The interactive chart displays your readings over time, with reference lines for "Low" (70 mg/dL) and "High Target" (180 mg/dL) to help you quickly identify if your readings are within a safe range.
+4. **Manage Logs:** The "Recent Logs" table below the chart lists all your entries, color-coded based on their safety level. You can delete incorrect entries here.
+
+---
+
+## 🩺 Feature 2: Recipe Auditor
+The Recipe Auditor is your personal "Digital Care Team." It uses a dual-agent AI system (a strict Endocrinologist and a creative Filipino Home Cook) to evaluate your meals. **It also uses your profile data (allergens, dietary preferences) to provide personalized and safe recommendations.**
 
 ### How to use it:
 1. **Navigate** to the "Recipe Auditor" page.
@@ -25,28 +37,29 @@ The Recipe Auditor is your personal "Digital Care Team." It uses a dual-agent AI
    * **Safety Score:** A score out of 100 indicating how safe the meal is for a diabetic.
    * **Food Details:** Shows the estimated portion weight and a list of identified ingredients.
    * **The Doctor's Analysis:** Highlights the medical verdict, estimated Glycemic Index, primary health concerns, and a nutritional breakdown (Calories, Carbs, Protein, Fat).
-   * **The Chef's Smart Swaps:** Suggests healthier, locally available Filipino alternatives (e.g., swapping white rice for Adlai or cauliflower rice) and explains *why* the swap is better.
+   * **The Chef's Smart Swaps:** Suggests healthier, locally available Filipino alternatives (e.g., swapping white rice for Adlai or cauliflower rice) and explains *why* the swap is better. **Crucially, the Chef will avoid suggesting any ingredients you have listed as allergens in your Settings.**
 6. **View History:** Scroll down to the **"Recent Audits"** section to see your past queries. Click on any past audit to instantly view its full report again without having to re-run the AI.
 
 ---
 
-## 📅 Feature 2: Weekly Planner (Meal Plan)
-The Weekly Planner helps you organize a stable, low-glycemic diet for the entire week, featuring familiar Filipino cuisine.
+## 📅 Feature 3: Weekly Planner (Meal Plan)
+The Weekly Planner helps you organize a stable, low-glycemic diet for the entire week, featuring familiar Filipino cuisine. **Like the Auditor, it uses your profile data to generate safe, personalized meal plans.**
 
 ### How to use it:
 1. **Navigate** to the "Meal Plan" page.
 2. **View Daily Plans:** Click on the day tabs (Mon, Tue, Wed, etc.) to view the planned Breakfast, Lunch, Dinner, and Snacks for that specific day.
 3. **Generate with AI:** 
    * Don't know what to eat? Click the **"Generate with AI"** button at the top right.
-   * The AI will automatically craft a complete, personalized 7-day meal plan tailored for a diabetic patient in the Philippines.
-4. **Edit Meals Manually:**
+   * The AI will automatically craft a complete, personalized 7-day meal plan tailored for a diabetic patient in the Philippines, **taking into account your specific dietary preferences and allergens.**
+4. **Analyze Plan:** Click the **"Analyze Plan"** button to have the Doctor Agent evaluate your current meal plan for safety.
+5. **Edit Meals Manually:**
    * If you want to change a specific meal, hover your mouse over that meal's card.
    * Click the **"Edit"** button that appears in the bottom right corner of the card.
    * Type your new meal into the text box.
    * Click **"Save"** to update your planner, or "Cancel" to discard changes.
-5. **Chef's Tips:** At the bottom of the page, look out for daily "Chef's Tips" that provide helpful cooking advice and traditional Filipino food hacks to keep your meals healthy.
+6. **Chef's Tips:** At the bottom of the page, look out for daily "Chef's Tips" that provide helpful cooking advice and traditional Filipino food hacks to keep your meals healthy.
 
 ---
 
 ## ⚙️ Behind the Scenes
-DiaMenu is powered by the **Google Gemini AI** model. When you audit a recipe or generate a meal plan, the app securely communicates with Gemini to provide real-time, context-aware, and culturally relevant dietary advice.
+DiaMenu is powered by the **Google Gemini AI** model. When you audit a recipe or generate a meal plan, the app securely communicates with Gemini to provide real-time, context-aware, and culturally relevant dietary advice, tailored specifically to your health profile.
