@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ViewState } from '../types';
-import { Icons } from '../constants';
+import { ViewState } from '../../types';
+import { Icons } from '../../constants';
 
 interface ForgotPasswordProps {
   changeView: (view: ViewState) => void;

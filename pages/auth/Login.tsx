@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { ViewState } from '../types';
-import { Icons } from '../constants';
+import { ViewState } from '../../types';
+import { Icons } from '../../constants';
 
-interface RegisterProps {
+interface LoginProps {
   changeView: (view: ViewState) => void;
-  onRegister: () => void;
+  onLogin: () => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
-  const [name, setName] = useState('');
+const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,11 +21,11 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      if (name && email && password) {
-        // Mock successful registration
-        onRegister();
+      if (email && password) {
+        // Mock successful login
+        onLogin();
       } else {
-        setError('Please fill in all fields.');
+        setError('Please enter both email and password.');
       }
     }, 1000);
   };
@@ -39,31 +38,15 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
             <Icons.Leaf />
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Create an account
+            Welcome back
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Join DiaMenu to start your journey towards healthier eating.
+            Sign in to access your personalized meal plans and audits.
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
             <div>
               <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -81,14 +64,25 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <div className="text-sm">
+                  <button
+                    type="button"
+                    onClick={() => changeView(ViewState.FORGOT_PASSWORD)}
+                    className="font-medium text-primary hover:text-teal-700"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              </div>
               <input
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="new-password"
+                autoComplete="current-password"
                 required
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                 placeholder="••••••••"
@@ -116,10 +110,10 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Creating account...
+                  Signing in...
                 </span>
               ) : (
-                'Create account'
+                'Sign in'
               )}
             </button>
           </div>
@@ -138,11 +132,11 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
           <button
             type="button"
             onClick={() => {
-              // Mock Google Signup
+              // Mock Google Login
               setIsLoading(true);
               setTimeout(() => {
                 setIsLoading(false);
-                onRegister();
+                onLogin();
               }, 1000);
             }}
             className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
@@ -155,18 +149,18 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
                 <path fill="#EA4335" d="M -14.754 43.769 C -12.984 43.769 -11.404 44.379 -10.154 45.579 L -6.734 42.159 C -8.804 40.229 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.769 -14.754 43.769 Z" />
               </g>
             </svg>
-            Sign up with Google
+            Sign in with Google
           </button>
         </div>
 
         <div className="text-center text-sm">
           <p className="text-gray-600">
-            Already have an account?{' '}
+            Don't have an account?{' '}
             <button
-              onClick={() => changeView(ViewState.LOGIN)}
+              onClick={() => changeView(ViewState.REGISTER)}
               className="font-medium text-primary hover:text-teal-700"
             >
-              Sign in
+              Sign up for free
             </button>
           </p>
         </div>
@@ -175,4 +169,4 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
   );
 };
 
-export default Register;
+export default Login;
