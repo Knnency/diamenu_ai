@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateMealPlan } from '../services/geminiService';
+import { generateMealPlan, evaluateWeeklyPlan } from '../services/geminiService';
 import FoodLoader from '../components/FoodLoader';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -8,9 +8,11 @@ const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 const MealPlan: React.FC = () => {
   const [activeDay, setActiveDay] = useState('Mon');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingMeal, setEditingMeal] = useState<{ day: string, type: string } | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [evaluations, setEvaluations] = useState<Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>> | null>(null);
 
   // Initial empty or default plan
   const [plan, setPlan] = useState<Record<string, Record<string, string>>>({
@@ -22,6 +24,7 @@ const MealPlan: React.FC = () => {
   const handleGeneratePlan = async () => {
     setIsGenerating(true);
     setError(null);
+    setEvaluations(null);
     try {
       const newPlan = await generateMealPlan();
       setPlan(newPlan);
@@ -30,6 +33,20 @@ const MealPlan: React.FC = () => {
       setError("Failed to generate meal plan. Please check your connection or API key.");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleEvaluatePlan = async () => {
+    setIsEvaluating(true);
+    setError(null);
+    try {
+      const result = await evaluateWeeklyPlan(plan);
+      setEvaluations(result);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to evaluate meal plan. Please check your connection or API key.");
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -47,6 +64,20 @@ const MealPlan: React.FC = () => {
           [editingMeal.type]: editValue
         }
       }));
+      
+      // Clear evaluation for this specific meal if it exists
+      if (evaluations && evaluations[editingMeal.day] && evaluations[editingMeal.day][editingMeal.type]) {
+          setEvaluations(prev => {
+              if (!prev) return prev;
+              const newEvals = { ...prev };
+              if (newEvals[editingMeal.day]) {
+                  newEvals[editingMeal.day] = { ...newEvals[editingMeal.day] };
+                  delete newEvals[editingMeal.day][editingMeal.type];
+              }
+              return newEvals;
+          });
+      }
+      
       setEditingMeal(null);
     }
   };
@@ -55,10 +86,10 @@ const MealPlan: React.FC = () => {
     setEditingMeal(null);
   };
 
-  if (isGenerating) {
+  if (isGenerating || isEvaluating) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <FoodLoader status="AI is crafting your personalized 7-day meal plan..." />
+        <FoodLoader status={isGenerating ? "AI is crafting your personalized 7-day meal plan..." : "Doctor AI is evaluating your meal plan..."} />
       </div>
     );
   }
@@ -70,7 +101,14 @@ const MealPlan: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900">Weekly Planner</h1>
             <p className="text-gray-500">Your curated menu for stable blood sugar.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+            <button 
+              onClick={handleEvaluatePlan}
+              disabled={Object.keys(plan).length === 0}
+              className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+                Analyze Plan
+            </button>
             <button 
               onClick={handleGeneratePlan}
               className="px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow-sm hover:bg-teal-700 transition-colors"
@@ -108,12 +146,38 @@ const MealPlan: React.FC = () => {
             const mealName = plan[activeDay]?.[type] || "Plan this meal +";
             const isPlanned = !!plan[activeDay]?.[type];
             const isEditing = editingMeal?.day === activeDay && editingMeal?.type === type;
+            const evaluation = evaluations?.[activeDay]?.[type];
+
+            let statusColor = 'bg-green-500';
+            let statusBg = '';
+            let statusBorder = 'border-gray-100';
+            
+            if (evaluation) {
+                if (evaluation.status === 'good') {
+                    statusColor = 'bg-green-500';
+                    statusBg = 'bg-green-50';
+                    statusBorder = 'border-green-200';
+                } else if (evaluation.status === 'warning') {
+                    statusColor = 'bg-yellow-500';
+                    statusBg = 'bg-yellow-50';
+                    statusBorder = 'border-yellow-200';
+                } else if (evaluation.status === 'bad') {
+                    statusColor = 'bg-red-500';
+                    statusBg = 'bg-red-50';
+                    statusBorder = 'border-red-200';
+                }
+            }
 
             return (
-                <div key={type} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[10rem] hover:border-primary transition-colors group">
+                <div key={type} className={`bg-white p-6 rounded-2xl shadow-sm border ${statusBorder} ${statusBg} flex flex-col justify-between min-h-[10rem] hover:border-primary transition-colors group relative`}>
                     <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">{type}</span>
-                        {isPlanned && !isEditing && <div className="w-2 h-2 rounded-full bg-green-500"></div>}
+                        {isPlanned && !isEditing && (
+                            <div className="flex items-center gap-2">
+                                {evaluation && <span className={`text-xs font-bold capitalize ${evaluation.status === 'good' ? 'text-green-700' : evaluation.status === 'warning' ? 'text-yellow-700' : 'text-red-700'}`}>{evaluation.status}</span>}
+                                <div className={`w-3 h-3 rounded-full ${statusColor}`}></div>
+                            </div>
+                        )}
                     </div>
                     
                     <div className="flex-grow flex flex-col justify-center">
@@ -132,9 +196,16 @@ const MealPlan: React.FC = () => {
                                 </div>
                             </div>
                         ) : (
-                            <h3 className={`text-lg font-bold ${isPlanned ? 'text-gray-800' : 'text-gray-400 italic'}`}>
-                                {mealName}
-                            </h3>
+                            <>
+                                <h3 className={`text-lg font-bold ${isPlanned ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                                    {mealName}
+                                </h3>
+                                {evaluation && (
+                                    <p className={`text-sm mt-2 ${evaluation.status === 'good' ? 'text-green-700' : evaluation.status === 'warning' ? 'text-yellow-700' : 'text-red-700'}`}>
+                                        {evaluation.reason}
+                                    </p>
+                                )}
+                            </>
                         )}
                     </div>
 

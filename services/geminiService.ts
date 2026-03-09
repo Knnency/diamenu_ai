@@ -115,6 +115,57 @@ export const generateMealPlan = async (): Promise<Record<string, Record<string, 
   }
 };
 
+export const evaluateWeeklyPlan = async (plan: Record<string, Record<string, string>>): Promise<Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>>> => {
+  if (!apiKey) {
+    throw new Error("API Key is missing.");
+  }
+
+  const systemInstruction = `
+    You are a strict Endocrinologist evaluating a 7-day meal plan for a diabetic patient in the Philippines.
+    For each meal provided, evaluate if it is 'good', 'warning', or 'bad' for a diabetic based on glycemic index and sugar content.
+    Provide a short 1-sentence reason for your evaluation.
+    Return ONLY a JSON object matching the structure of the input plan, where the value for each meal is an object with 'status' and 'reason'.
+  `;
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      Mon: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
+      Tue: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
+      Wed: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
+      Thu: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
+      Fri: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
+      Sat: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
+      Sun: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } }
+    }
+  };
+
+  const textPrompt = `Evaluate this meal plan: ${JSON.stringify(plan)}`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: textPrompt,
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: schema,
+        temperature: 0.2,
+      }
+    });
+
+    let text = response.text;
+    if (!text) throw new Error("No response from AI");
+    
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    return JSON.parse(text) as Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>>;
+  } catch (error) {
+    console.error("Gemini Evaluation Error:", error);
+    throw error;
+  }
+};
+
 export const auditRecipeWithAI = async (recipeInput: string): Promise<AuditResult> => {
   if (!apiKey) {
     throw new Error("API Key is missing.");
