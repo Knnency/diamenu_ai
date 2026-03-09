@@ -1,0 +1,821 @@
+[
+  {
+    "id": 0,
+    "author": "user",
+    "payload": {
+      "type": "text",
+      "text": "Make this (Project Verdict: High Impact, Technically Robust, and Socially Relevant\nDiaMenu Web is not just a \"recipe app\"; it is a digital health intervention tool designed to solve a specific, urgent problem: the \"Execution Gap\" in diabetes management. By moving beyond generic calorie counting and focusing on actionable, culturally relevant advice, this project has the potential to genuinely improve quality of life for patients in the Philippines.\n\nHere is the breakdown of why this plan succeeds:\n\n1. The Problem-Solution Fit\nThe Gap: You correctly identified that patients don't fail because they want to eat badly; they fail because healthy food is often seen as expensive, inaccessible, or boring.\n\nThe Fix: By using AI to \"audit\" recipes and \"smart swap\" ingredients (e.g., suggesting Adlai or Cauliflower Rice instead of just saying \"No Rice\"), you are removing the mental burden from the patient.\n\n2. The Technical Architecture\nYour chosen stack is industry-standard and perfectly suited for a complex data-driven application:\n\nDjango (Backend): Provides the necessary security (crucial for medical data) and robust database management (PostgreSQL) needed for handling complex user profiles and food databases.\n\nReact (Frontend): Ensures the \"Interactive Weekly Calendar\" and \"Smart Swap\" features feel instant and app-like, rather than a slow, reloading webpage.\n\nCrewAI + Celery (The Brain): This is your innovation. By orchestrating \"Agents\" (a strict Doctor Agent vs. a creative Chef Agent), you are simulating a real-world consultation, ensuring safety while maximizing flavor.\n\n3. The \"X-Factor\" (Differentiation)\nWhat makes DiaMenu stand out from generic competitors (like MyFitnessPal) is your focus on Context & Privacy:\n\nLocalization: The ability to suggest ingredients found in a local palengke or sari-sari store makes this accessible to the average Filipino, not just the wealthy.\n\nPrivacy-First: The feature to redact/hide doctor details during onboarding shows a maturity in handling sensitive data (PII) that most student projects miss.\n\n4. User Experience (UX)\nVisual Feedback: Incorporating a \"Food Loader\" (like a bouncing apple) and clear, responsive dashboards ensures the user knows the AI is \"working for them,\" transforming the wait time into a branded experience.\n\nCommunity: Allowing users to submit recipes that are then \"AI Audited\" creates a safe, self-sustaining library of food options.\n)",
+      "files": [],
+      "fileUploads": [],
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771329837,
+      "nanos": 146000000
+    }
+  },
+  {
+    "id": 1,
+    "author": "model",
+    "payload": {
+      "type": "thinking",
+      "text": "**Defining the React Project**\n\nI'm now zeroing in on defining the scope for \"DiaMenu Web\". It's a React app, a digital tool for diabetes management. I'm focusing on the core concept and its functionality. The immediate next step is to detail essential features and functionalities.\n\n\n**Refining the Features**\n\nI'm now zeroing in on defining the scope for \"DiaMenu Web\". It's a React app, a digital tool for diabetes management. I'm focusing on the core concept and its functionality. The immediate next step is to detail essential features and functionalities.\n\nI am now focusing on the core features, like AI recipe auditing, culturally relevant ingredient swapping, and interactive calendar, all tailored for Filipino diabetics. I'll mock the backend using the Gemini API and frontend technologies: React and Tailwind. The goal is a visually striking and robust app that emphasizes cultural relevance. The plan involves a landing page clearly showing the value proposition.\n\n\n**Outlining App Features**\n\nI'm now detailing user onboarding, with key inputs like age, dietary preferences, and preferred cuisine (with a Filipino focus, naturally). The recipe auditor (\"The Brain\") is next, leveraging Gemini for safety checks (Doctor Agent) and flavor adjustments (Chef Agent). I'm also planning a smart swap feature for Filipino ingredients, a weekly planner, and a community section for recipe submissions.\n\n\n**Structuring the UI Components**\n\nI'm now diving into the component structure. I've broken it down: `index.html` with Tailwind, the entry point (`index.tsx`), and the app's core routing (`App.tsx`). The plan is to build out modular components: `Header`, `Footer`, `RecipeCard`, `FoodLoader` for the UX, and `AgentFeedback` for the visual differences between doctor and chef, along with `SmartSwap`. I will then set up the main pages. I'll also manage API interactions with `gemini.ts` and set up the relevant types and constants. I'm focusing on making them work together, so that the user gets the best experience.\n\n\n**Designing the AI Interactions**\n\nI'm now refining the AI interaction design. I am leaning toward a single, robust Gemini call that simulates a dialogue. The call will request a JSON response containing `doctor_analysis`, `chef_swaps`, and `overall_verdict`. I believe this approach streamlines the process.\n\n**Planning the Visuals**\n\nNow, I'm defining the visual design. My color scheme will be medical but friendly; Teals and Greens will represent health, and warm Oranges will represent food. For typography, I am looking at a clean sans-serif like Inter via Google Fonts. The component design will focus on cards with soft shadows, rounded corners, and clear badges indicating \"Diabetic Friendly\" or \"High Sugar\".\n\n**Mapping the Implementation**\n\nI am now creating a step-by-step plan. The sequence will begin with setup, including metadata, HTML, index, and the App shell. Then I'll set up Gemini services for \"Auditing\" recipes. I will then build core components: navigation, layout, and loader. I'll begin by building the Home page, including a hero section and features, then the Auditor page with input text/image, calling Gemini, and displaying \"Doctor\" vs \"Chef\" results. I'll also add a Meal Plan page and a Profile page.\n\n\n",
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771329837,
+      "nanos": 146000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771329857,
+      "nanos": 299000000
+    }
+  },
+  {
+    "id": 2,
+    "author": "model",
+    "payload": {
+      "type": "generationTable",
+      "entries": [
+        {
+          "path": "metadata.json",
+          "generationType": 0,
+          "isDone": true,
+          "description": "App metadata and permissions.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "{\n  \"name\": \"DiaMenu Web\",\n  \"description\": \"A digital health intervention tool for diabetes management providing AI-powered recipe auditing and culturally relevant smart food swaps.\",\n  \"requestFramePermissions\": [\n    \"camera\"\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "path": "index.html",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Root HTML with Tailwind CSS and Google Fonts.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>DiaMenu Web</title>\n    <script src=\"https://cdn.tailwindcss.com\"></script>\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap\" rel=\"stylesheet\">\n    <script>\n      tailwind.config = {\n        theme: {\n          extend: {\n            fontFamily: {\n              sans: ['Inter', 'sans-serif'],\n            },\n            colors: {\n              primary: '#0F766E', // Teal 700\n              secondary: '#F97316', // Orange 500\n              accent: '#ECFCCB', // Lime 100\n            },\n            animation: {\n              'bounce-slow': 'bounce 3s infinite',\n            }\n          },\n        },\n      }\n    </script>\n    <style>\n      body {\n        background-color: #F8FAFC;\n        color: #1E293B;\n      }\n      /* Custom Scrollbar */\n      ::-webkit-scrollbar {\n        width: 8px;\n      }\n      ::-webkit-scrollbar-track {\n        background: #f1f1f1;\n      }\n      ::-webkit-scrollbar-thumb {\n        background: #cbd5e1;\n        border-radius: 4px;\n      }\n      ::-webkit-scrollbar-thumb:hover {\n        background: #94a3b8;\n      }\n    </style>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n  </body>\n</html>"
+            }
+          ]
+        },
+        {
+          "path": "index.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Entry point rendering the App component.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React from 'react';\nimport ReactDOM from 'react-dom/client';\nimport App from './App';\n\nconst rootElement = document.getElementById('root');\nif (!rootElement) {\n  throw new Error(\"Could not find root element to mount to\");\n}\n\nconst root = ReactDOM.createRoot(rootElement);\nroot.render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);"
+            }
+          ]
+        },
+        {
+          "path": "types.ts",
+          "generationType": 0,
+          "isDone": true,
+          "description": "TypeScript definitions for the application.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "export interface Recipe {\n  id: string;\n  name: string;\n  ingredients: string[];\n  instructions: string;\n  imageUrl?: string;\n  isAudited: boolean;\n  auditResult?: AuditResult;\n}\n\nexport interface AuditResult {\n  safetyScore: number; // 0-100\n  doctorAnalysis: {\n    verdict: string;\n    concerns: string[];\n    glycemicIndexEstimate: string;\n  };\n  chefSwaps: {\n    originalIngredient: string;\n    suggestedSwap: string;\n    reason: string;\n    localContext: string; // e.g., \"Available at palengke\"\n  }[];\n  nutritionalInfo: {\n    calories: number;\n    carbs: number;\n    protein: number;\n    fat: number;\n  };\n}\n\nexport enum ViewState {\n  HOME,\n  AUDITOR,\n  MEAL_PLAN,\n  PROFILE,\n  COMMUNITY\n}\n\nexport interface UserProfile {\n  name: string;\n  age: number;\n  type: 'Type 1' | 'Type 2' | 'Pre-diabetic';\n  dietaryPreferences: string[];\n}\n"
+            }
+          ]
+        },
+        {
+          "path": "constants.ts",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Global constants and icons.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React from 'react';\n\nexport const APP_NAME = \"DiaMenu\";\nexport const APP_TAGLINE = \"Bridging the Gap Between Doctor's Orders and Dinner.\";\n\n// SVG Icons as React Components\nexport const Icons = {\n  Leaf: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z\" />\n    </svg>\n  ),\n  Chef: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z\" />\n    </svg>\n  ),\n  Doctor: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z\" />\n    </svg>\n  ),\n  Upload: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5\" />\n    </svg>\n  ),\n  Check: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M4.5 12.75l6 6 9-13.5\" />\n    </svg>\n  ),\n  Alert: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z\" />\n    </svg>\n  ),\n  Calendar: () => (\n    <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={1.5} stroke=\"currentColor\" className=\"w-6 h-6\">\n       <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5\" />\n    </svg>\n  )\n};"
+            }
+          ]
+        },
+        {
+          "path": "services/geminiService.ts",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Service to interact with Google Gemini API for auditing recipes.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import { GoogleGenAI, Type } from \"@google/genai\";\nimport { AuditResult } from \"../types\";\n\nconst apiKey = process.env.API_KEY || \"\";\nconst ai = new GoogleGenAI({ apiKey });\n\nconst modelName = \"gemini-3-flash-preview\";\n\nexport const auditRecipeWithAI = async (recipeInput: string, isImage: boolean = false, imageData?: string): Promise<AuditResult> => {\n  if (!apiKey) {\n    throw new Error(\"API Key is missing.\");\n  }\n\n  const systemInstruction = `\n    You are DiaMenu's core engine, a dual-agent system designed to help Filipino diabetics manage their diet.\n    \n    Agent 1: The Doctor (Endocrinologist)\n    - Strict, focuses on glycemic index, sugar content, and long-term health risks.\n    - Identifies \"red flags\" in ingredients (e.g., white rice, refined sugar, excessive sodium).\n    \n    Agent 2: The Chef (Filipino Home Cook)\n    - Creative, practical, and culturally aware.\n    - Suggests realistic \"Smart Swaps\" available in a typical Philippines 'palengke' or supermarket.\n    - Focuses on flavor preservation while lowering GI.\n    - Suggests Adlai, Brown Rice, Cauliflower Rice, Stevia, Monkfruit, Tofu, Monggo, Malunggay, etc.\n\n    Your Output MUST be strictly valid JSON matching the schema provided.\n  `;\n\n  const schema = {\n    type: Type.OBJECT,\n    properties: {\n      safetyScore: { type: Type.NUMBER, description: \"0 to 100, where 100 is perfectly safe for a diabetic.\" },\n      doctorAnalysis: {\n        type: Type.OBJECT,\n        properties: {\n          verdict: { type: Type.STRING, description: \"A short professional verdict (e.g., 'High Risk', 'Moderate', 'Approved').\" },\n          concerns: { type: Type.ARRAY, items: { type: Type.STRING }, description: \"List of specific health concerns.\" },\n          glycemicIndexEstimate: { type: Type.STRING, description: \"Estimated GI (Low/Medium/High).\" }\n        }\n      },\n      chefSwaps: {\n        type: Type.ARRAY,\n        items: {\n          type: Type.OBJECT,\n          properties: {\n            originalIngredient: { type: Type.STRING },\n            suggestedSwap: { type: Type.STRING },\n            reason: { type: Type.STRING },\n            localContext: { type: Type.STRING, description: \"Where to buy or how it fits Filipino cuisine.\" }\n          }\n        }\n      },\n      nutritionalInfo: {\n        type: Type.OBJECT,\n        properties: {\n          calories: { type: Type.NUMBER },\n          carbs: { type: Type.NUMBER },\n          protein: { type: Type.NUMBER },\n          fat: { type: Type.NUMBER }\n        }\n      }\n    }\n  };\n\n  const textPrompt = `Audit this recipe/meal for a Type 2 Diabetic patient in the Philippines: ${recipeInput}`;\n\n  try {\n    const parts: any[] = [];\n    if (isImage && imageData) {\n        // Remove header if present (e.g., data:image/png;base64,)\n        const base64Data = imageData.split(',')[1] || imageData;\n        parts.push({\n            inlineData: {\n                mimeType: 'image/jpeg', // Assuming jpeg for simplicity, or detect\n                data: base64Data\n            }\n        });\n    }\n    parts.push({ text: textPrompt });\n\n    const response = await ai.models.generateContent({\n      model: modelName,\n      contents: { parts },\n      config: {\n        systemInstruction: systemInstruction,\n        responseMimeType: \"application/json\",\n        responseSchema: schema,\n      }\n    });\n\n    const text = response.text;\n    if (!text) throw new Error(\"No response from AI\");\n    \n    return JSON.parse(text) as AuditResult;\n  } catch (error) {\n    console.error(\"Gemini Audit Error:\", error);\n    throw error;\n  }\n};\n"
+            }
+          ]
+        },
+        {
+          "path": "components/FoodLoader.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "A bouncing apple loader component to visualize the \"AI Agents\" working.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React, { useEffect, useState } from 'react';\n\ninterface FoodLoaderProps {\n  status: string;\n}\n\nconst FoodLoader: React.FC<FoodLoaderProps> = ({ status }) => {\n  const [dots, setDots] = useState('');\n\n  useEffect(() => {\n    const interval = setInterval(() => {\n      setDots(prev => prev.length < 3 ? prev + '.' : '');\n    }, 500);\n    return () => clearInterval(interval);\n  }, []);\n\n  return (\n    <div className=\"flex flex-col items-center justify-center p-8 space-y-6\">\n      <div className=\"relative w-24 h-24\">\n        {/* Shadow */}\n        <div className=\"absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-2 bg-gray-200 rounded-[100%] animate-pulse blur-sm\"></div>\n        \n        {/* Bouncing Apple (Simple SVG composition) */}\n        <div className=\"absolute inset-0 animate-bounce-slow flex items-center justify-center\">\n             <svg viewBox=\"0 0 24 24\" fill=\"currentColor\" className=\"w-20 h-20 text-red-500 drop-shadow-md\">\n                <path d=\"M20.5 9.5c-.6-2.5-2.8-4.3-5.5-4.3-1.8 0-3.5.9-4.5 2.3-.6-.8-1.5-1.5-2.5-1.9L9 2.5l-.4-.2-1.3 2.6C4.4 6.1 2.5 8.5 2.5 11.5c0 4.1 3.4 7.5 7.5 7.5.5 0 1-.1 1.5-.2 1.6 1.1 3.5 1.7 5.5 1.7 5 0 9-4 9-9 0-.7-.1-1.3-.3-2zM12 4.2c0-.2.2-.4.4-.4.2 0 .4.2.4.4v2.5c0 .2-.2.4-.4.4-.2 0-.4-.2-.4-.4V4.2zM8 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm9 4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z\" />\n             </svg>\n             {/* Leaf */}\n             <svg viewBox=\"0 0 24 24\" fill=\"currentColor\" className=\"w-8 h-8 text-green-500 absolute top-0 right-4 -rotate-12\">\n                 <path d=\"M12 2C7.58 2 4 5.58 4 10c0 2.67 1.33 5.04 3.37 6.55.57.42 1.25.13 1.25-.59 0-.25-.13-.48-.34-.63C6.73 14.28 5.6 12.26 5.6 10c0-3.53 2.87-6.4 6.4-6.4 3.53 0 6.4 2.87 6.4 6.4 0 2.26-1.13 4.28-2.88 5.33-.21.15-.34.38-.34.63 0 .72.68 1.01 1.25.59C18.67 15.04 20 12.67 20 10c0-4.42-3.58-8-8-8z\" />\n             </svg>\n        </div>\n      </div>\n      \n      <div className=\"text-center\">\n        <h3 className=\"text-xl font-semibold text-primary\">{status}</h3>\n        <p className=\"text-gray-500 text-sm mt-1\">Simulating Agents{dots}</p>\n      </div>\n      \n      {/* Agent Indicators */}\n      <div className=\"flex space-x-4 mt-4\">\n        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full border ${status.includes('Doctor') ? 'bg-blue-50 border-blue-200 animate-pulse' : 'bg-gray-50 border-gray-100 opacity-50'}`}>\n            <span className=\"text-xs font-bold text-blue-600\">DR. AGENT</span>\n        </div>\n        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full border ${status.includes('Chef') ? 'bg-orange-50 border-orange-200 animate-pulse' : 'bg-gray-50 border-gray-100 opacity-50'}`}>\n            <span className=\"text-xs font-bold text-orange-600\">CHEF AGENT</span>\n        </div>\n      </div>\n    </div>\n  );\n};\n\nexport default FoodLoader;"
+            }
+          ]
+        },
+        {
+          "path": "components/AuditReport.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Display the results of the AI Audit (Doctor vs Chef view).",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React from 'react';\nimport { AuditResult } from '../types';\nimport { Icons } from '../constants';\n\ninterface AuditReportProps {\n  result: AuditResult;\n  onReset: () => void;\n}\n\nconst AuditReport: React.FC<AuditReportProps> = ({ result, onReset }) => {\n  const getScoreColor = (score: number) => {\n    if (score >= 80) return 'text-green-600 border-green-600 bg-green-50';\n    if (score >= 50) return 'text-yellow-600 border-yellow-600 bg-yellow-50';\n    return 'text-red-600 border-red-600 bg-red-50';\n  };\n\n  return (\n    <div className=\"space-y-6 animate-fade-in-up\">\n      {/* Header Verdict */}\n      <div className=\"bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-4\">\n        <div>\n            <h2 className=\"text-2xl font-bold text-gray-800\">Audit Complete</h2>\n            <p className=\"text-gray-500\">Here is the breakdown from our digital care team.</p>\n        </div>\n        <div className={`flex flex-col items-center justify-center w-24 h-24 rounded-full border-4 ${getScoreColor(result.safetyScore)}`}>\n            <span className=\"text-2xl font-bold\">{result.safetyScore}</span>\n            <span className=\"text-xs uppercase font-semibold\">Safety</span>\n        </div>\n      </div>\n\n      <div className=\"grid grid-cols-1 lg:grid-cols-2 gap-6\">\n        {/* Doctor's Report */}\n        <div className=\"bg-white rounded-2xl shadow-sm border-l-4 border-l-blue-500 overflow-hidden\">\n            <div className=\"bg-blue-50 p-4 border-b border-blue-100 flex items-center gap-3\">\n                <div className=\"p-2 bg-white rounded-full text-blue-600 shadow-sm\">\n                    <Icons.Doctor />\n                </div>\n                <div>\n                    <h3 className=\"font-bold text-blue-900\">The Doctor's Analysis</h3>\n                    <p className=\"text-xs text-blue-600\">Endocrinologist Perspective</p>\n                </div>\n            </div>\n            <div className=\"p-6 space-y-4\">\n                <div className=\"flex justify-between items-center bg-gray-50 p-3 rounded-lg\">\n                    <span className=\"text-sm text-gray-600\">Verdict</span>\n                    <span className=\"font-bold text-gray-900\">{result.doctorAnalysis.verdict}</span>\n                </div>\n                <div className=\"flex justify-between items-center bg-gray-50 p-3 rounded-lg\">\n                    <span className=\"text-sm text-gray-600\">Est. Glycemic Index</span>\n                    <span className={`font-bold px-2 py-1 rounded text-xs ${result.doctorAnalysis.glycemicIndexEstimate.includes('High') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>\n                        {result.doctorAnalysis.glycemicIndexEstimate}\n                    </span>\n                </div>\n                \n                <div>\n                    <h4 className=\"text-sm font-semibold text-gray-700 mb-2\">Primary Concerns:</h4>\n                    <ul className=\"space-y-2\">\n                        {result.doctorAnalysis.concerns.map((concern, idx) => (\n                            <li key={idx} className=\"flex items-start gap-2 text-sm text-gray-600\">\n                                <span className=\"text-red-500 mt-0.5\"><Icons.Alert /></span>\n                                {concern}\n                            </li>\n                        ))}\n                    </ul>\n                </div>\n\n                <div className=\"grid grid-cols-4 gap-2 text-center pt-4 border-t border-gray-100\">\n                    <div>\n                        <div className=\"text-xs text-gray-500\">Cals</div>\n                        <div className=\"font-semibold\">{result.nutritionalInfo.calories}</div>\n                    </div>\n                    <div>\n                        <div className=\"text-xs text-gray-500\">Carbs</div>\n                        <div className=\"font-semibold text-orange-600\">{result.nutritionalInfo.carbs}g</div>\n                    </div>\n                    <div>\n                        <div className=\"text-xs text-gray-500\">Protein</div>\n                        <div className=\"font-semibold\">{result.nutritionalInfo.protein}g</div>\n                    </div>\n                    <div>\n                        <div className=\"text-xs text-gray-500\">Fat</div>\n                        <div className=\"font-semibold\">{result.nutritionalInfo.fat}g</div>\n                    </div>\n                </div>\n            </div>\n        </div>\n\n        {/* Chef's Swaps */}\n        <div className=\"bg-white rounded-2xl shadow-sm border-l-4 border-l-orange-500 overflow-hidden\">\n            <div className=\"bg-orange-50 p-4 border-b border-orange-100 flex items-center gap-3\">\n                <div className=\"p-2 bg-white rounded-full text-orange-600 shadow-sm\">\n                    <Icons.Chef />\n                </div>\n                <div>\n                    <h3 className=\"font-bold text-orange-900\">The Chef's Smart Swaps</h3>\n                    <p className=\"text-xs text-orange-600\">Filipino Kitchen Context</p>\n                </div>\n            </div>\n            <div className=\"p-6 space-y-4\">\n                {result.chefSwaps.length === 0 ? (\n                    <p className=\"text-gray-500 text-center italic\">No swaps needed! Good job.</p>\n                ) : (\n                    result.chefSwaps.map((swap, idx) => (\n                        <div key={idx} className=\"bg-white border border-gray-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow\">\n                            <div className=\"flex items-center justify-between mb-2\">\n                                <span className=\"text-red-400 line-through text-sm\">{swap.originalIngredient}</span>\n                                <span className=\"text-gray-400 text-xs\">→</span>\n                                <span className=\"text-green-600 font-bold text-lg\">{swap.suggestedSwap}</span>\n                            </div>\n                            <p className=\"text-xs text-gray-600 mb-2\">{swap.reason}</p>\n                            <div className=\"bg-orange-50 text-orange-800 text-xs px-2 py-1 rounded inline-block\">\n                                🛒 {swap.localContext}\n                            </div>\n                        </div>\n                    ))\n                )}\n            </div>\n        </div>\n      </div>\n\n      <div className=\"flex justify-center pt-6\">\n        <button \n            onClick={onReset}\n            className=\"px-6 py-3 bg-gray-800 text-white rounded-xl shadow-lg hover:bg-gray-900 transition flex items-center gap-2\"\n        >\n            Audit Another Recipe\n        </button>\n      </div>\n    </div>\n  );\n};\n\nexport default AuditReport;"
+            }
+          ]
+        },
+        {
+          "path": "pages/Auditor.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "The main \"Recipe Auditor\" page where users upload images or text.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React, { useState, useRef } from 'react';\nimport { Icons } from '../constants';\nimport { auditRecipeWithAI } from '../services/geminiService';\nimport { AuditResult } from '../types';\nimport FoodLoader from '../components/FoodLoader';\nimport AuditReport from '../components/AuditReport';\n\nconst Auditor: React.FC = () => {\n  const [inputText, setInputText] = useState('');\n  const [selectedImage, setSelectedImage] = useState<string | null>(null);\n  const [isLoading, setIsLoading] = useState(false);\n  const [loadingStatus, setLoadingStatus] = useState('');\n  const [result, setResult] = useState<AuditResult | null>(null);\n  const [error, setError] = useState<string | null>(null);\n  const fileInputRef = useRef<HTMLInputElement>(null);\n\n  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {\n    const file = e.target.files?.[0];\n    if (file) {\n      const reader = new FileReader();\n      reader.onloadend = () => {\n        setSelectedImage(reader.result as string);\n      };\n      reader.readAsDataURL(file);\n    }\n  };\n\n  const handleAudit = async () => {\n    if (!inputText && !selectedImage) return;\n\n    setIsLoading(true);\n    setError(null);\n    setLoadingStatus('Initializing Digital Care Team...');\n\n    try {\n      // Simulate Agent sequence for UX\n      setTimeout(() => setLoadingStatus('Doctor Agent: Analyzing macros & GI...'), 1000);\n      setTimeout(() => setLoadingStatus('Chef Agent: Searching local markets for swaps...'), 3500);\n\n      const auditData = await auditRecipeWithAI(inputText || \"Analyze this image\", !!selectedImage, selectedImage || undefined);\n      \n      // Ensure the \"simulation\" lasts at least 4.5 seconds so the user sees the messages\n      setTimeout(() => {\n        setResult(auditData);\n        setIsLoading(false);\n      }, 5000);\n\n    } catch (err: any) {\n      console.error(err);\n      setError(\"Failed to audit recipe. Please check your connection or API key.\");\n      setIsLoading(false);\n    }\n  };\n\n  if (isLoading) {\n    return (\n      <div className=\"min-h-[60vh] flex flex-col items-center justify-center\">\n        <FoodLoader status={loadingStatus} />\n      </div>\n    );\n  }\n\n  if (result) {\n    return <AuditReport result={result} onReset={() => { setResult(null); setInputText(''); setSelectedImage(null); }} />;\n  }\n\n  return (\n    <div className=\"max-w-2xl mx-auto space-y-8 animate-fade-in-up\">\n      <div className=\"text-center space-y-2\">\n        <h1 className=\"text-3xl font-bold text-gray-900\">Recipe Auditor</h1>\n        <p className=\"text-gray-500\">\n            Upload a photo of your meal or paste a recipe. Our dual-agent AI (Doctor & Chef) will check it for safety and flavor.\n        </p>\n      </div>\n\n      <div className=\"bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6\">\n        {/* Input Type Selection */}\n        <div className=\"space-y-4\">\n            <label className=\"block text-sm font-medium text-gray-700\">What are you eating?</label>\n            \n            {/* Image Area */}\n            <div \n                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${selectedImage ? 'border-primary bg-teal-50' : 'border-gray-300 hover:border-gray-400'}`}\n                onClick={() => fileInputRef.current?.click()}\n            >\n                {selectedImage ? (\n                    <div className=\"relative\">\n                        <img src={selectedImage} alt=\"Preview\" className=\"max-h-64 mx-auto rounded-lg shadow-md\" />\n                        <button \n                            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}\n                            className=\"absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600\"\n                        >\n                            <svg className=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M6 18L18 6M6 6l12 12\" /></svg>\n                        </button>\n                    </div>\n                ) : (\n                    <div className=\"flex flex-col items-center space-y-2 text-gray-500\">\n                        <Icons.Upload />\n                        <span>Click to upload a food photo</span>\n                    </div>\n                )}\n                <input \n                    type=\"file\" \n                    accept=\"image/*\" \n                    className=\"hidden\" \n                    ref={fileInputRef}\n                    onChange={handleImageUpload}\n                />\n            </div>\n\n            <div className=\"relative\">\n                <div className=\"absolute inset-0 flex items-center\">\n                    <div className=\"w-full border-t border-gray-200\"></div>\n                </div>\n                <div className=\"relative flex justify-center text-sm\">\n                    <span className=\"px-2 bg-white text-gray-500\">OR</span>\n                </div>\n            </div>\n\n            {/* Text Area */}\n            <div>\n                <textarea\n                    className=\"w-full rounded-xl border-gray-200 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20 p-4\"\n                    rows={4}\n                    placeholder=\"e.g., Sinigang na Baboy with 2 cups of white rice...\"\n                    value={inputText}\n                    onChange={(e) => setInputText(e.target.value)}\n                />\n            </div>\n        </div>\n\n        {error && (\n            <div className=\"p-3 bg-red-50 text-red-700 rounded-lg text-sm\">\n                {error}\n            </div>\n        )}\n\n        <button\n            onClick={handleAudit}\n            disabled={!inputText && !selectedImage}\n            className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-[1.02] active:scale-95 ${(!inputText && !selectedImage) ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-primary to-emerald-600 hover:shadow-xl'}`}\n        >\n            Start AI Audit\n        </button>\n      </div>\n\n      <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\n        <div className=\"bg-blue-50 p-4 rounded-xl flex items-start gap-3\">\n            <div className=\"text-blue-600 mt-1\"><Icons.Doctor /></div>\n            <div className=\"text-sm\">\n                <p className=\"font-semibold text-blue-900\">Medical Safety</p>\n                <p className=\"text-blue-700\">Strict checking against diabetic guidelines.</p>\n            </div>\n        </div>\n        <div className=\"bg-orange-50 p-4 rounded-xl flex items-start gap-3\">\n            <div className=\"text-orange-600 mt-1\"><Icons.Chef /></div>\n            <div className=\"text-sm\">\n                <p className=\"font-semibold text-orange-900\">Culinary Swaps</p>\n                <p className=\"text-orange-700\">Tasty alternatives found in local stores.</p>\n            </div>\n        </div>\n      </div>\n    </div>\n  );\n};\n\nexport default Auditor;"
+            }
+          ]
+        },
+        {
+          "path": "pages/Home.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Landing page explaining the value proposition.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React from 'react';\nimport { ViewState } from '../types';\nimport { APP_NAME, APP_TAGLINE, Icons } from '../constants';\n\ninterface HomeProps {\n  changeView: (view: ViewState) => void;\n}\n\nconst Home: React.FC<HomeProps> = ({ changeView }) => {\n  return (\n    <div className=\"space-y-16 animate-fade-in-up\">\n      {/* Hero Section */}\n      <div className=\"relative bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100\">\n        <div className=\"absolute top-0 right-0 w-64 h-64 bg-accent opacity-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2\"></div>\n        <div className=\"absolute bottom-0 left-0 w-48 h-48 bg-orange-100 opacity-50 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3\"></div>\n        \n        <div className=\"relative z-10 p-8 md:p-16 text-center max-w-3xl mx-auto space-y-6\">\n            <h1 className=\"text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight\">\n                Eat Well. Live Well. <br />\n                <span className=\"text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-600\">\n                    Without the Compromise.\n                </span>\n            </h1>\n            <p className=\"text-lg text-gray-600 leading-relaxed\">\n                {APP_TAGLINE} <br/>\n                DiaMenu audits your favorite Filipino recipes and suggests smart, affordable swaps to keep your blood sugar in check.\n            </p>\n            <div className=\"flex flex-col sm:flex-row gap-4 justify-center pt-4\">\n                <button \n                    onClick={() => changeView(ViewState.AUDITOR)}\n                    className=\"px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-emerald-800 hover:shadow-xl transition-all transform hover:-translate-y-1\"\n                >\n                    Try Recipe Auditor\n                </button>\n                <button \n                     onClick={() => changeView(ViewState.MEAL_PLAN)}\n                    className=\"px-8 py-4 bg-white text-gray-700 border border-gray-200 font-semibold rounded-xl hover:bg-gray-50 transition-all\"\n                >\n                    View Meal Plans\n                </button>\n            </div>\n        </div>\n      </div>\n\n      {/* Feature Grid */}\n      <div className=\"grid grid-cols-1 md:grid-cols-3 gap-8\">\n        <div className=\"bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition\">\n            <div className=\"w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4\">\n                <Icons.Doctor />\n            </div>\n            <h3 className=\"text-xl font-bold mb-2\">The Execution Gap</h3>\n            <p className=\"text-gray-500 text-sm\">\n                Doctors say \"Eat healthy,\" but don't say how. We bridge that gap with specific, actionable advice.\n            </p>\n        </div>\n        <div className=\"bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition\">\n            <div className=\"w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center mb-4\">\n                <Icons.Chef />\n            </div>\n            <h3 className=\"text-xl font-bold mb-2\">Smart Swaps</h3>\n            <p className=\"text-gray-500 text-sm\">\n                Don't just cut rice. Swap it with Adlai or Cauliflower. We suggest ingredients found in your local palengke.\n            </p>\n        </div>\n        <div className=\"bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition\">\n            <div className=\"w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-4\">\n                <Icons.Calendar />\n            </div>\n            <h3 className=\"text-xl font-bold mb-2\">Interactive Planning</h3>\n            <p className=\"text-gray-500 text-sm\">\n                Build a weekly calendar that adapts to your needs. No reloading, just instant, app-like planning.\n            </p>\n        </div>\n      </div>\n\n      {/* Social Proof / Context */}\n      <div className=\"bg-gray-900 text-white rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8\">\n        <div className=\"flex-1 space-y-4\">\n            <h2 className=\"text-2xl font-bold\">Privacy First. Context Aware.</h2>\n            <p className=\"text-gray-400\">\n                We respect your data. Your medical profile helps the AI act as your personal endocrinologist, but sensitive details are never stored permanently or shared.\n            </p>\n        </div>\n        <div className=\"flex-1 w-full\">\n            <div className=\"bg-gray-800 p-6 rounded-xl border border-gray-700\">\n                <div className=\"flex items-center gap-3 mb-4\">\n                    <div className=\"w-3 h-3 rounded-full bg-red-500\"></div>\n                    <div className=\"w-3 h-3 rounded-full bg-yellow-500\"></div>\n                    <div className=\"w-3 h-3 rounded-full bg-green-500\"></div>\n                </div>\n                <div className=\"space-y-3 font-mono text-sm\">\n                    <div className=\"text-green-400\">{\">\"} Initiating context protocol...</div>\n                    <div className=\"text-gray-300\">{\">\"} Location: Metro Manila, PH</div>\n                    <div className=\"text-gray-300\">{\">\"} Market Prices: Updated</div>\n                    <div className=\"text-blue-400\">{\">\"} Ready to serve.</div>\n                </div>\n            </div>\n        </div>\n      </div>\n    </div>\n  );\n};\n\nexport default Home;"
+            }
+          ]
+        },
+        {
+          "path": "pages/MealPlan.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Interactive weekly calendar simulation.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React, { useState } from 'react';\n\nconst days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];\nconst mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];\n\nconst MealPlan: React.FC = () => {\n  const [activeDay, setActiveDay] = useState('Mon');\n\n  // Simulated data\n  const plan: Record<string, Record<string, string>> = {\n    'Mon': { 'Breakfast': 'Oatmeal w/ Chia Seeds', 'Lunch': 'Grilled Bangus & Ensalada', 'Dinner': 'Tinola (Chicken Breast, Sayote)', 'Snack': 'Boiled Saba' },\n    'Tue': { 'Breakfast': 'Taho (Less Syrup)', 'Lunch': 'Monggo w/ Malunggay', 'Dinner': 'Adobong Sitaw w/ Tofu', 'Snack': 'Apple Slices' },\n    'Wed': { 'Breakfast': 'Scrambled Egg & Wheat Bread', 'Lunch': 'Sinigang na Hipon', 'Dinner': 'Cauliflower Rice Stir Fry', 'Snack': 'Greek Yogurt' },\n  };\n\n  return (\n    <div className=\"space-y-6 animate-fade-in-up\">\n      <div className=\"flex flex-col md:flex-row md:items-center justify-between gap-4\">\n        <div>\n            <h1 className=\"text-3xl font-bold text-gray-900\">Weekly Planner</h1>\n            <p className=\"text-gray-500\">Your curated menu for stable blood sugar.</p>\n        </div>\n        <button className=\"px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50\">\n            Export List\n        </button>\n      </div>\n\n      {/* Days Tabs */}\n      <div className=\"flex overflow-x-auto pb-2 gap-2 hide-scrollbar\">\n        {days.map(day => (\n            <button\n                key={day}\n                onClick={() => setActiveDay(day)}\n                className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${activeDay === day ? 'bg-primary text-white shadow-lg scale-105' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'}`}\n            >\n                {day}\n            </button>\n        ))}\n      </div>\n\n      {/* Grid */}\n      <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6\">\n        {mealTypes.map(type => {\n            const mealName = plan[activeDay]?.[type] || \"Plan this meal +\";\n            const isPlanned = !!plan[activeDay]?.[type];\n\n            return (\n                <div key={type} className=\"bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-40 hover:border-primary transition-colors cursor-pointer group\">\n                    <div className=\"flex justify-between items-start\">\n                        <span className=\"text-xs font-bold uppercase text-gray-400 tracking-wider\">{type}</span>\n                        {isPlanned && <div className=\"w-2 h-2 rounded-full bg-green-500\"></div>}\n                    </div>\n                    <div>\n                        <h3 className={`text-lg font-bold ${isPlanned ? 'text-gray-800' : 'text-gray-400 italic'}`}>\n                            {mealName}\n                        </h3>\n                    </div>\n                    <div className=\"flex justify-end opacity-0 group-hover:opacity-100 transition-opacity\">\n                         <span className=\"text-xs text-primary font-semibold\">Edit</span>\n                    </div>\n                </div>\n            );\n        })}\n      </div>\n\n      <div className=\"bg-accent/30 p-6 rounded-xl border border-accent flex items-start gap-4\">\n        <span className=\"text-2xl\">💡</span>\n        <div>\n            <h4 className=\"font-bold text-gray-800\">Chef's Tip for {activeDay}</h4>\n            <p className=\"text-sm text-gray-700 mt-1\">\n                Preparing Monggo on Tuesdays is a Filipino tradition! Remember to skip the pork chicharon topping and use smoked fish (tinapa) flakes for flavor without the saturated fat.\n            </p>\n        </div>\n      </div>\n    </div>\n  );\n};\n\nexport default MealPlan;"
+            }
+          ]
+        },
+        {
+          "path": "App.tsx",
+          "generationType": 0,
+          "isDone": true,
+          "description": "Main application layout and routing logic using view state.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React, { useState } from 'react';\nimport Home from './pages/Home';\nimport Auditor from './pages/Auditor';\nimport MealPlan from './pages/MealPlan';\nimport { ViewState } from './types';\nimport { APP_NAME, Icons } from './constants';\n\nconst App: React.FC = () => {\n  const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);\n  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);\n\n  const renderView = () => {\n    switch (currentView) {\n      case ViewState.HOME: return <Home changeView={setCurrentView} />;\n      case ViewState.AUDITOR: return <Auditor />;\n      case ViewState.MEAL_PLAN: return <MealPlan />;\n      default: return <Home changeView={setCurrentView} />;\n    }\n  };\n\n  const NavItem = ({ view, label, icon }: { view: ViewState, label: string, icon: any }) => (\n    <button \n        onClick={() => { setCurrentView(view); setIsMobileMenuOpen(false); }}\n        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentView === view ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}\n    >\n        {icon}\n        <span>{label}</span>\n    </button>\n  );\n\n  return (\n    <div className=\"min-h-screen bg-slate-50 font-sans text-gray-900\">\n      {/* Navigation */}\n      <nav className=\"sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200\">\n        <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">\n            <div className=\"flex justify-between items-center h-16\">\n                <div className=\"flex items-center cursor-pointer\" onClick={() => setCurrentView(ViewState.HOME)}>\n                    <div className=\"w-8 h-8 bg-gradient-to-br from-primary to-teal-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm\">\n                        D\n                    </div>\n                    <span className=\"text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600\">\n                        {APP_NAME}\n                    </span>\n                </div>\n\n                {/* Desktop Menu */}\n                <div className=\"hidden md:flex space-x-2\">\n                    <NavItem view={ViewState.HOME} label=\"Home\" icon={<Icons.Leaf />} />\n                    <NavItem view={ViewState.AUDITOR} label=\"Recipe Auditor\" icon={<Icons.Check />} />\n                    <NavItem view={ViewState.MEAL_PLAN} label=\"Meal Plan\" icon={<Icons.Calendar />} />\n                </div>\n\n                {/* Mobile Menu Button */}\n                <div className=\"md:hidden\">\n                    <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className=\"text-gray-500 hover:text-gray-900\">\n                        <svg className=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n                            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d={isMobileMenuOpen ? \"M6 18L18 6M6 6l12 12\" : \"M4 6h16M4 12h16M4 18h16\"} />\n                        </svg>\n                    </button>\n                </div>\n            </div>\n        </div>\n\n        {/* Mobile Menu Dropdown */}\n        {isMobileMenuOpen && (\n            <div className=\"md:hidden bg-white border-t border-gray-100 p-4 space-y-2 shadow-lg\">\n                <NavItem view={ViewState.HOME} label=\"Home\" icon={<Icons.Leaf />} />\n                <NavItem view={ViewState.AUDITOR} label=\"Recipe Auditor\" icon={<Icons.Check />} />\n                <NavItem view={ViewState.MEAL_PLAN} label=\"Meal Plan\" icon={<Icons.Calendar />} />\n            </div>\n        )}\n      </nav>\n\n      {/* Main Content */}\n      <main className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8\">\n        {renderView()}\n      </main>\n\n      {/* Footer */}\n      <footer className=\"bg-white border-t border-gray-200 mt-12 py-12\">\n        <div className=\"max-w-7xl mx-auto px-4 text-center\">\n            <p className=\"text-gray-500 text-sm\">\n                © {new Date().getFullYear()} {APP_NAME}. Designed for Impact. <br/>\n                <span className=\"text-xs text-gray-400\">Not a substitute for professional medical advice. Always consult your doctor.</span>\n            </p>\n        </div>\n      </footer>\n    </div>\n  );\n};\n\nexport default App;"
+            }
+          ]
+        }
+      ]
+    },
+    "createdTimestamp": {
+      "seconds": 1771329857,
+      "nanos": 302000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771329858,
+      "nanos": 516000000
+    }
+  },
+  {
+    "id": 3,
+    "author": "model",
+    "payload": {
+      "type": "fixingErrors",
+      "diagnostics": [
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 9,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 9,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 10,
+          "column": 8
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 10,
+          "column": 13
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 10,
+          "column": 35
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 10,
+          "column": 60
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 14,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 14,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'fill'.",
+          "line": 14,
+          "column": 45
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'viewBox'.",
+          "line": 14,
+          "column": 57
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeWidth'.",
+          "line": 14,
+          "column": 77
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'stroke'.",
+          "line": 14,
+          "column": 95
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'className'.",
+          "line": 14,
+          "column": 117
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 15,
+          "column": 8
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 15,
+          "column": 13
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 15,
+          "column": 35
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'd'.",
+          "line": 15,
+          "column": 58
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 15,
+          "column": 60
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 19,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 19,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'fill'.",
+          "line": 19,
+          "column": 45
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'viewBox'.",
+          "line": 19,
+          "column": 57
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeWidth'.",
+          "line": 19,
+          "column": 77
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'stroke'.",
+          "line": 19,
+          "column": 95
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'className'.",
+          "line": 19,
+          "column": 117
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 20,
+          "column": 8
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 20,
+          "column": 13
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 20,
+          "column": 35
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'd'.",
+          "line": 20,
+          "column": 58
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 20,
+          "column": 60
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 24,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 24,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'fill'.",
+          "line": 24,
+          "column": 45
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'viewBox'.",
+          "line": 24,
+          "column": 57
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeWidth'.",
+          "line": 24,
+          "column": 77
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'stroke'.",
+          "line": 24,
+          "column": 95
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'className'.",
+          "line": 24,
+          "column": 117
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 25,
+          "column": 8
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 25,
+          "column": 13
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 25,
+          "column": 35
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'd'.",
+          "line": 25,
+          "column": 58
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 25,
+          "column": 60
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 29,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 29,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'fill'.",
+          "line": 29,
+          "column": 45
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'viewBox'.",
+          "line": 29,
+          "column": 57
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeWidth'.",
+          "line": 29,
+          "column": 77
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'stroke'.",
+          "line": 29,
+          "column": 95
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'className'.",
+          "line": 29,
+          "column": 117
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 30,
+          "column": 8
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 30,
+          "column": 13
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 30,
+          "column": 35
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'd'.",
+          "line": 30,
+          "column": 58
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 30,
+          "column": 60
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 34,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 34,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'fill'.",
+          "line": 34,
+          "column": 45
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'viewBox'.",
+          "line": 34,
+          "column": 57
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeWidth'.",
+          "line": 34,
+          "column": 77
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'stroke'.",
+          "line": 34,
+          "column": 95
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'className'.",
+          "line": 34,
+          "column": 117
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 35,
+          "column": 8
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 35,
+          "column": 13
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 35,
+          "column": 35
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'd'.",
+          "line": 35,
+          "column": 58
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 35,
+          "column": 60
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'svg'.",
+          "line": 39,
+          "column": 6
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'xmlns'.",
+          "line": 39,
+          "column": 10
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'fill'.",
+          "line": 39,
+          "column": 45
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'viewBox'.",
+          "line": 39,
+          "column": 57
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeWidth'.",
+          "line": 39,
+          "column": 77
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'stroke'.",
+          "line": 39,
+          "column": 95
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'className'.",
+          "line": 39,
+          "column": 117
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'path'.",
+          "line": 40,
+          "column": 9
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinecap'.",
+          "line": 40,
+          "column": 14
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'strokeLinejoin'.",
+          "line": 40,
+          "column": 36
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "Cannot find name 'd'.",
+          "line": 40,
+          "column": 59
+        },
+        {
+          "rMa": "constants.ts",
+          "message": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.",
+          "line": 40,
+          "column": 61
+        },
+        {
+          "rMa": "components/AuditReport.tsx",
+          "message": "Property 'Doctor' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 36,
+          "column": 28
+        },
+        {
+          "rMa": "components/AuditReport.tsx",
+          "message": "Property 'Alert' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 60,
+          "column": 78
+        },
+        {
+          "rMa": "components/AuditReport.tsx",
+          "message": "Property 'Chef' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 92,
+          "column": 28
+        },
+        {
+          "rMa": "pages/Auditor.tsx",
+          "message": "Property 'Upload' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 98,
+          "column": 32
+        },
+        {
+          "rMa": "pages/Auditor.tsx",
+          "message": "Property 'Doctor' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 149,
+          "column": 56
+        },
+        {
+          "rMa": "pages/Auditor.tsx",
+          "message": "Property 'Chef' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 156,
+          "column": 58
+        },
+        {
+          "rMa": "pages/Home.tsx",
+          "message": "Property 'Doctor' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 49,
+          "column": 24
+        },
+        {
+          "rMa": "pages/Home.tsx",
+          "message": "Property 'Chef' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 58,
+          "column": 24
+        },
+        {
+          "rMa": "pages/Home.tsx",
+          "message": "Property 'Calendar' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 67,
+          "column": 24
+        },
+        {
+          "rMa": "App.tsx",
+          "message": "Property 'Check' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 49,
+          "column": 91
+        },
+        {
+          "rMa": "App.tsx",
+          "message": "Property 'Calendar' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 50,
+          "column": 88
+        },
+        {
+          "rMa": "App.tsx",
+          "message": "Property 'Check' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 68,
+          "column": 87
+        },
+        {
+          "rMa": "App.tsx",
+          "message": "Property 'Calendar' does not exist on type '{ Leaf: () => string; fill: string; viewBox: string; strokeWidth: { 1.5: any; }; stroke: string; className: boolean; round: string; d: boolean; }'.",
+          "line": 69,
+          "column": 84
+        }
+      ]
+    },
+    "createdTimestamp": {
+      "seconds": 1771329971,
+      "nanos": 179000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771330084,
+      "nanos": 220000000
+    }
+  },
+  {
+    "id": 4,
+    "author": "model",
+    "payload": {
+      "type": "thinking",
+      "text": "**Analyzing Code Errors**\n\nI'm currently focused on pinpointing the source of syntax errors within the `constants.ts` file. It appears that the issues stem from the `Icons` object definition within the file itself, and the problem is cascading to other files using those exports. I'm taking a close look at the provided TypeScript code snippet to identify the specific syntax errors preventing successful compilation.\n\n\n**Identifying JSX Issues**\n\nI've determined the likely cause of the compilation errors. The `constants.ts` file, which is declared as TypeScript, contains JSX syntax within the `Icons` object. The extension suggests a standard TypeScript file. However, JSX within a TypeScript project necessitates the `.tsx` extension for proper parsing. Correcting the file extension to `.tsx` will likely resolve these issues.\n\n\n**Addressing File Extension Constraints**\n\nI'm now grappling with the constraints on file modifications. Since I can't rename `constants.ts` to `constants.tsx`, and I am prohibited from adding new files, I must find a workaround within the existing file structure. My current approach involves re-evaluating how the `Icons` are exported, considering options like `React.createElement` or string returns, but they're functional components returning JSX! This means I need a valid, compatible export solution to avoid errors.\n\n\n**Evaluating File Conversion**\n\nI'm now weighing my options. The constraint of not adding new files or renaming `constants.ts` forces me to choose between rewriting the JSX within the file to use `React.createElement`, or attempting to treat it as a valid TypeScript file without JSX, as though the file naming was user error. My focus is on achieving a working, valid, TypeScript-compliant solution given these limitations, and the error confirms the file is not being parsed as JSX.\n\n\n**Implementing React.createElement**\n\nI've decided to convert the JSX within `constants.ts` to `React.createElement` calls. I can't add or rename files, so I need to make the existing file work. Since `Icons` are used as components, I must convert the JSX within `constants.ts` to valid, equivalent components, using `React.createElement` to ensure compatibility.\n\n\n**Refining TypeScript Imports**\n\nI'm now checking the implications of including `import React from 'react';` within `constants.ts`. The original plan to replace JSX with `React.createElement` seemed solid, however, the compilation error in the `AuditReport.tsx` file suggests deeper issues with how `constants.ts` was initially parsed. The presence of the `import React` statement indicates the file is meant to interact with React components. Since the `.ts` file cannot contain JSX, I'm refactoring the contents, using `React.createElement` for JSX-like returns, and ensuring proper type definitions for the `Icons` object. It seems that resolving errors from the incorrect parsing due to the initially invalid JSX will fix the errors in the dependent files.\n\n\n**Adjusting Component Syntax**\n\nI am now focusing on refining the `constants.ts` file. I'm converting the SVG icon definitions to React components using `React.createElement`. There are seven icons to handle: Leaf, Chef, Doctor, Upload, Check, Alert, and Calendar. I'm making sure to address any discrepancies between SVG and React attribute naming conventions. I'm also ensuring the React components properly utilize `React.createElement`.\n\n\n**Converting SVG to React**\n\nI'm now converting each SVG icon definition within `constants.ts` to a React component using `React.createElement`. I'm replacing the direct JSX with functional components, ensuring all attributes are correctly translated for React compatibility. I've translated the Leaf SVG to a React component and I'm repeating the process for the remaining six icons.\n\n\n**Completing Icon Definitions**\n\nI'm now implementing the remaining icon components within `constants.ts`, converting each SVG definition to a functional React component using `React.createElement`. My goal is to produce valid, type-safe React components to prevent any further compilation issues when these are imported into the various files depending on the icon definitions. I'm focusing on consistency in attribute naming and overall structure to ensure smooth integration, while finishing the Chef, Alert, Check, and Calendar icons.\n\n\n**Finalizing Icon Implementations**\n\nI'm now implementing the Chef, Doctor, and Upload icons, converting their SVG definitions to React components using `React.createElement` within `constants.ts`. I'm paying close attention to attribute translation and component structure to ensure each icon functions correctly. With these last conversions, the `Icons` object in `constants.ts` is fully implemented as React components, ready for integration into the project.\n\n\n**Verifying Dependencies**\n\nNow I'm making sure all the necessary dependencies are correctly configured, starting by re-checking `services/geminiService.ts`. I'm confirming the `import { GoogleGenAI, Type } from \"@google/genai\";` statement and the `const ai = new GoogleGenAI({ apiKey });` initialization, focusing on any potential type mismatches or incorrect import paths. I'll make sure there are no remaining errors that might be affecting the project.\n\n\n**Refactoring API Initialization**\n\nI'm now focusing on refining the API key initialization in `geminiService.ts`. I need to ensure that I'm directly using `process.env.API_KEY` when initializing the `GoogleGenAI` client, as per the guidelines. I'm exploring the implications of possible `undefined` values and ensuring that the type of the key is handled safely within the initialization, given that the constructor expects a string. My preference is to ensure no intermediate variables are used.\n\n\n**Validating Icon Attributes**\n\nI'm now making one last check of the completed icon definitions in `constants.ts`, focusing on attribute consistency. I need to ensure that React component attribute naming conventions are followed, for things like `strokeLinecap` vs. `stroke-linecap`. While the prior conversion focused on implementing the React equivalents, this final verification ensures all attributes match React conventions precisely, and are validly typed.\n\n\n**Validating File Resolution**\n\nI'm now confirming the resolution of errors following the conversion of all icons in `constants.ts` to React components using `React.createElement`. The earlier errors related to undefined properties within dependent files such as `AuditReport.tsx`, `Auditor.tsx`, `Home.tsx`, and `App.tsx` were all downstream effects of the initial parse errors in `constants.ts`. My expectation is that the conversion of the icon definitions from invalid JSX to valid React components will fully resolve these dependency issues and ensure correct type definition resolution throughout the project. I'll focus on testing the integration of the icons in the dependent files.\n\n\n**Validating Code Consistency**\n\nI'm now making one last check of `geminiService.ts` for consistency. The logic related to the image data appears sound. My key focus is on confirming correct import statements, and verifying the proper use of the `GoogleGenAI` class. Specifically, I'm ensuring there are no superfluous type imports and that API calls are using the proper, expected parameters.\n\n\n**Confirming Integration Success**\n\nI'm now confirming the seamless integration of React components within `constants.ts` by checking the icon usage in various files. After fixing the invalid JSX parsing in `constants.ts` and converting all the icons to functional React components, I am confirming the correct resolution of dependencies. The `import React from 'react';` remains included, of course. I'll systematically review the relevant dependent components such as `App.tsx`, `Home.tsx`, `Auditor.tsx`, and `AuditReport.tsx` to verify that the icons are now displaying and functioning as intended.\n\n\n**Refining Doctor Icon**\n\nI'm now refining the `Doctor` icon's React component within `constants.ts`. I have converted the SVG path data into a `React.createElement` call, paying close attention to attribute naming and structure, and I'm updating the icon definitions. I'm ensuring consistency with the overall component style. I'll make a final verification pass to ensure compatibility and correctness.\n\n\n**Finalizing Icon Refinements**\n\nI'm making a final pass over the `Alert` icon to ensure its React component is correctly structured and attributes are consistently formatted. My focus now is on aligning this icon's component with the established style, ensuring it integrates perfectly with the other React icons. I will test these new icon components.\n\n\n\n**Refining React Component**\n\nI'm now refining the `Calendar` icon component to match the established style within `constants.ts`. I am converting the original SVG data to use `React.createElement`, ensuring attribute conventions are followed, and verifying that the final component aligns seamlessly with other icon definitions in the file.\n\n\n**Optimizing Key Initialization**\n\nI'm now focusing on refining the API key initialization in `geminiService.ts` to fully meet the user's coding guidelines. I've re-examined the key initialization, and I'll now directly initialize `GoogleGenAI` with `process.env.API_KEY` for clarity, to prevent any confusion that may arise.\n\n\n\n**Refining Calendar Icon**\n\nI'm now implementing and refining the React component for the Calendar icon within `constants.ts`. I'm converting the SVG attributes and structure to the `React.createElement` syntax. I need to be sure all attributes are correctly formatted for React, and that the component's style is consistent with other React components in the file.\n\n\n**Verifying SVG Conversions**\n\nI'm now implementing the `Check`, `Leaf` and `Upload` components within `constants.ts`. I've ensured a functional return, with all attributes correctly translated to `React.createElement` syntax for each SVG. The React components are now properly implemented and ready for integration. I'll need to check the implementations.\n\n\n**Validating Final Component Conversions**\n\nI've completed verifying the Leaf, Upload and Check React icon components, ensuring they're correctly implemented and all SVG conversions using `React.createElement` are correct. I've re-examined the code, reviewed the implementations, and confirmed their functionality. I'm now testing these icons for integration.\n\n\n**Validating Functionality Checks**\n\nI'm now implementing the `Chef` icon component within `constants.ts` and confirming that the component matches existing syntax. I'm taking care to ensure it's a functional React component, and using `React.createElement` for all JSX-like returns.\n\n\n\n**Refining API Key Import**\n\nI'm now focusing on refining how the API key is handled within `geminiService.ts`. I need to directly use `process.env.API_KEY` for the `GoogleGenAI` initialization, to ensure no intermediate variable is used. I'm taking steps to guarantee the API key's presence and validity, which is necessary.\n\n\n**Refactoring API Configuration**\n\nI'm now refactoring the `geminiService.ts` API key configuration to directly initialize `GoogleGenAI` with `process.env.API_KEY`, as the updated constraints suggested. I'm taking the steps to handle a potentially `undefined` API key within the `GoogleGenAI` constructor, and also within the `auditRecipeWithAI` function, but removing the declaration of the API key, since the code already checks that the API key exists before execution.\n\n\n**Prioritizing File Fixes**\n\nI am now returning to the compilation errors, specifically within `constants.ts`. Although the API key handling in `geminiService.ts` merits consideration, the project's current state indicates that primary errors derive from `constants.ts`. My focus will be on resolving those compilation errors, and adhering to the guidelines, while leaving the API handling untouched for now.\n\n\n**Confirming Valid Syntax**\n\nI'm now focusing on directly replacing the JSX in `constants.ts` with `React.createElement` calls to satisfy the TypeScript compiler for a `.ts` file extension, as the project's current state indicates that primary errors derive from `constants.ts`, and `App.tsx`, `Home.tsx` etc already correctly consume the React elements. I'm taking care to ensure the React component can be used in other files.\n\n```xml\n<changes>\n  <change>\n    <file>constants.ts</file>\n    <description>Refactor JSX to React.createElement to fix compilation errors in .ts file.</description>\n    <content><![CDATA[import React from 'react';\n\nexport const APP_NAME = \"DiaMenu\";\nexport const APP_TAGLINE = \"Bridging the Gap Between Doctor's Orders and Dinner.\";\n\n// SVG Icons as React Components\n// Note: Using React.createElement since this is a .ts file and cannot parse JSX syntax directly.\nexport const Icons = {\n  Leaf: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: \"1.5\",\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, [\n    React.createElement(\"path\", {\n      strokeLinecap: \"round\",\n      strokeLinejoin: \"round\",\n      d: \"M3.75 13.5l10.5-11.25L20.25 13.5M3.75 13.5l2.25 2.25m-2.25-2.25l2.25-2.25m2.25 2.25l2.25 2.25M9 12v9m6 0v-9m-3 0v-3\"\n    })\n  ]),\n  Chef: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: \"1.5\",\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, [\n    React.createElement(\"path\", {\n      strokeLinecap: \"round\",\n      strokeLinejoin: \"round\",\n      d: \"M15.75 5.25v13.5m-7.5-13.5v13.5\"\n    }),\n    React.createElement(\"path\", {\n      strokeLinecap: \"round\",\n      strokeLinejoin: \"round\",\n      d: \"M21 9v12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 21V9m18 0a3 3 0 00-3-3H6a3 3 0 00-3 3m18 0V7.5a3 3 0 00-3-3H6a3 3 0 00-3 3m18 0v1.5a3 3 0 01-3 3H6a3 3 0 01-3-3V9m18 0h-3.75a3 3 0 01-3-3m0 0h3.75a3 3 0 003-3\"\n    })\n  ]),\n  Doctor: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: \"1.5\",\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, [\n    React.createElement(\"path\", {\n      strokeLinecap: \"round\",\n      strokeLinejoin: \"round\",\n      d: \"M15.75 9V5.25A2.25 2.25 0\n\n**Implementing React Components**\n\nI've replaced all JSX with `React.createElement` calls within `constants.ts` to ensure valid `.ts` syntax. This addresses the compilation errors and ensures the icon components are valid for React consumption in the project. The components are fully refactored, and all dependencies resolved.\n\n\n**Confirming Valid Syntax**\n\nI'm now satisfied! The `constants.ts` file now uses `React.createElement` instead of JSX for its React components. This refactoring addresses the compilation errors and ensures compatibility within the project. The previously reported issues should be resolved after this fix.\n\n\n",
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771329975,
+      "nanos": 175000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771330084,
+      "nanos": 220000000
+    }
+  },
+  {
+    "id": 5,
+    "author": "model",
+    "payload": {
+      "type": "text",
+      "text": "<!-- Convert JSX in constants.ts to React.createElement to fix errors where TS compiler attempts to parse JSX in a .ts file -->\n",
+      "cMarkNode": {}
+    },
+    "createdTimestamp": {
+      "seconds": 1771330084,
+      "nanos": 220000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771330084,
+      "nanos": 403000000
+    }
+  },
+  {
+    "id": 6,
+    "author": "model",
+    "payload": {
+      "type": "generationTable",
+      "entries": [
+        {
+          "path": "constants.ts",
+          "generationType": 2,
+          "isDone": true,
+          "description": "Refactor JSX components to use React.createElement to support .ts extension.",
+          "diffs": [
+            {
+              "target": "",
+              "replacement": "import React from 'react';\n\nexport const APP_NAME = \"DiaMenu\";\nexport const APP_TAGLINE = \"Bridging the Gap Between Doctor's Orders and Dinner.\";\n\n// SVG Icons as React Components\n// Using React.createElement because this is a .ts file which cannot contain JSX\nexport const Icons = {\n  Leaf: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z\"\n  })),\n  Chef: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"\n  })),\n  Doctor: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z\"\n  })),\n  Upload: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5\"\n  })),\n  Check: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M4.5 12.75l6 6 9-13.5\"\n  })),\n  Alert: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z\"\n  })),\n  Calendar: () => React.createElement(\"svg\", {\n    xmlns: \"http://www.w3.org/2000/svg\",\n    fill: \"none\",\n    viewBox: \"0 0 24 24\",\n    strokeWidth: 1.5,\n    stroke: \"currentColor\",\n    className: \"w-6 h-6\"\n  }, React.createElement(\"path\", {\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n    d: \"M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5\"\n  }))\n};"
+            }
+          ]
+        }
+      ]
+    },
+    "createdTimestamp": {
+      "seconds": 1771330084,
+      "nanos": 403000000
+    },
+    "doneTimestamp": {
+      "seconds": 1771330100,
+      "nanos": 586000000
+    }
+  }
+]

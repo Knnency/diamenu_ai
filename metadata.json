@@ -1,0 +1,7 @@
+{
+  "name": "DiaMenu Web",
+  "description": "A digital health intervention tool for diabetes management providing AI-powered recipe auditing and culturally relevant smart food swaps.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
