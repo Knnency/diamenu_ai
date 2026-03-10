@@ -40,6 +40,7 @@ export enum ViewState {
   LOGIN,
   REGISTER,
   FORGOT_PASSWORD,
+  RESET_PASSWORD,
   SETTINGS
 }
 

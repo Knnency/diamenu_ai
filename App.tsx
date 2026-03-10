@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import Settings from './pages/Settings';
 import { ViewState } from './types';
 import { APP_NAME, Icons } from './constants';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
       case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
       case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleLogin} />;
       case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} />;
+      case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} />;
       case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
       default: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
     }
