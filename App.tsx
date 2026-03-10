@@ -9,18 +9,24 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import Settings from './pages/Settings';
 import { ViewState } from './types';
 import { APP_NAME, Icons } from './constants';
+import { logout as authLogout, getStoredUser } from './services/authService';
 
 const App: React.FC = () => {
+  const storedUser = getStoredUser();
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!storedUser);
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(storedUser);
 
-  const handleLogin = () => {
+  const handleLogin = (userData: object) => {
+    setUser(userData as { name?: string; email?: string });
     setIsAuthenticated(true);
     setCurrentView(ViewState.AUDITOR);
   };
 
   const handleLogout = () => {
+    authLogout();
+    setUser(null);
     setIsAuthenticated(false);
     setCurrentView(ViewState.HOME);
   };
