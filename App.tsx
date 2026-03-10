@@ -5,6 +5,7 @@ import MealPlan from './pages/MealPlan';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import VerifyOTP from './pages/auth/VerifyOTP';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Settings from './pages/Settings';
