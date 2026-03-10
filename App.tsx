@@ -5,6 +5,7 @@ import MealPlan from './pages/MealPlan';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import VerifyOTP from './pages/auth/VerifyOTP';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Settings from './pages/Settings';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
       case ViewState.PROFILE: return isAuthenticated ? <Dashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
       case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
       case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleLogin} />;
+      case ViewState.VERIFY_OTP: return <VerifyOTP changeView={setCurrentView} onVerify={handleLogin} />;
       case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} />;
       case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} />;
       case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
