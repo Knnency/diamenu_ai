@@ -88,4 +88,24 @@ export const requestPasswordReset = async (email: string) => {
   return true;
 };
 
+export const verifyPasswordResetOTP = async (email: string, otp: string): Promise<string> => {
+  const res = await apiFetch('/api/auth/password-reset/verify-otp/', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Invalid or expired OTP.');
+  return data.reset_token as string;
+};
+
+export const confirmPasswordReset = async (reset_token: string, new_password: string) => {
+  const res = await apiFetch('/api/auth/password-reset/confirm/', {
+    method: 'POST',
+    body: JSON.stringify({ reset_token, new_password }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to reset password.');
+  return data;
+};
+
 export default apiFetch;

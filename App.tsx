@@ -13,175 +13,176 @@ import { APP_NAME, Icons } from './constants';
 import { logout as authLogout, getStoredUser } from './services/authService';
 
 const App: React.FC = () => {
-  const storedUser = getStoredUser();
-  const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!storedUser);
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(storedUser);
+    const storedUser = getStoredUser();
+    const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(!!storedUser);
+    const [user, setUser] = useState<{ name?: string; email?: string } | null>(storedUser);
+    const [resetEmail, setResetEmail] = useState('');
 
-  const handleLogin = (userData: object) => {
-    setUser(userData as { name?: string; email?: string });
-    setIsAuthenticated(true);
-    setCurrentView(ViewState.AUDITOR);
-  };
+    const handleLogin = (userData: object) => {
+        setUser(userData as { name?: string; email?: string });
+        setIsAuthenticated(true);
+        setCurrentView(ViewState.AUDITOR);
+    };
 
-  const handleLogout = () => {
-    authLogout();
-    setUser(null);
-    setIsAuthenticated(false);
-    setCurrentView(ViewState.HOME);
-  };
+    const handleLogout = () => {
+        authLogout();
+        setUser(null);
+        setIsAuthenticated(false);
+        setCurrentView(ViewState.HOME);
+    };
 
-  const renderView = () => {
-    switch (currentView) {
-      case ViewState.HOME: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
-      case ViewState.AUDITOR: return isAuthenticated ? <Auditor /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-      case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-      case ViewState.PROFILE: return isAuthenticated ? <Dashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-      case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
-      case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleLogin} />;
-      case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} />;
-      case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} />;
-      case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-      default: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
-    }
-  };
+    const renderView = () => {
+        switch (currentView) {
+            case ViewState.HOME: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
+            case ViewState.AUDITOR: return isAuthenticated ? <Auditor /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.PROFILE: return isAuthenticated ? <Dashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleLogin} />;
+            case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} onOtpSent={setResetEmail} />;
+            case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} email={resetEmail} />;
+            case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            default: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
+        }
+    };
 
-  const NavItem = ({ view, label, icon }: { view: ViewState, label: string, icon: any }) => (
-    <button 
-        onClick={() => { setCurrentView(view); setIsMobileMenuOpen(false); }}
-        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentView === view ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
-    >
-        {icon}
-        <span>{label}</span>
-    </button>
-  );
+    const NavItem = ({ view, label, icon }: { view: ViewState, label: string, icon: any }) => (
+        <button
+            onClick={() => { setCurrentView(view); setIsMobileMenuOpen(false); }}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentView === view ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
+        >
+            {icon}
+            <span>{label}</span>
+        </button>
+    );
 
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans text-gray-900">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-                <div className="flex items-center cursor-pointer" onClick={() => setCurrentView(isAuthenticated ? ViewState.AUDITOR : ViewState.HOME)}>
-                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-teal-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm">
-                        D
-                    </div>
-                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-                        {APP_NAME}
-                    </span>
-                </div>
+    return (
+        <div className="min-h-screen bg-slate-50 font-sans text-gray-900 flex flex-col">
+            {/* Navigation */}
+            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <div className="flex items-center cursor-pointer" onClick={() => setCurrentView(isAuthenticated ? ViewState.AUDITOR : ViewState.HOME)}>
+                            <div className="w-8 h-8 bg-gradient-to-br from-primary to-teal-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm">
+                                D
+                            </div>
+                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                                {APP_NAME}
+                            </span>
+                        </div>
 
-                {/* Desktop Menu */}
-                <div className="hidden md:flex space-x-2">
-                    {!isAuthenticated && <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />}
-                    
-                    {isAuthenticated && (
-                        <>
-                            <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
-                            <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
-                            <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
-                            <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
-                        </>
-                    )}
-                    
-                    <div className="w-px h-6 bg-gray-200 mx-2 self-center"></div>
-                    
-                    {!isAuthenticated ? (
-                        <>
-                            <button 
-                                onClick={() => setCurrentView(ViewState.LOGIN)}
-                                className={`px-4 py-2 rounded-lg text-gray-600 hover:text-primary font-medium transition-colors ${currentView === ViewState.LOGIN ? 'text-primary' : ''}`}
-                            >
-                                Log in
-                            </button>
-                            <button 
-                                onClick={() => setCurrentView(ViewState.REGISTER)}
-                                className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-teal-700 font-medium transition-colors shadow-sm hover:shadow-md"
-                            >
-                                Sign up
-                            </button>
-                        </>
-                    ) : (
-                        <button 
-                            onClick={handleLogout}
-                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-red-600 font-medium transition-colors"
-                        >
-                            Log out
-                        </button>
-                    )}
-                </div>
+                        {/* Desktop Menu */}
+                        <div className="hidden md:flex space-x-2">
+                            {!isAuthenticated && <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />}
 
-                {/* Mobile Menu Button */}
-                <div className="md:hidden">
-                    <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-500 hover:text-gray-900">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
+                            {isAuthenticated && (
+                                <>
+                                    <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
+                                    <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
+                                    <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
+                                    <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
+                                </>
+                            )}
 
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-            <div className="md:hidden bg-white border-t border-gray-100 p-4 space-y-2 shadow-lg">
-                {!isAuthenticated && <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />}
-                
-                {isAuthenticated && (
-                    <>
-                        <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
-                        <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
-                        <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
-                        <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
-                    </>
-                )}
+                            <div className="w-px h-6 bg-gray-200 mx-2 self-center"></div>
 
-                <div className="border-t border-gray-100 pt-2 mt-2">
-                    {!isAuthenticated ? (
-                        <div className="flex flex-col space-y-2">
-                            <button 
-                                onClick={() => { setCurrentView(ViewState.LOGIN); setIsMobileMenuOpen(false); }}
-                                className="w-full text-left px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 font-medium"
-                            >
-                                Log in
-                            </button>
-                            <button 
-                                onClick={() => { setCurrentView(ViewState.REGISTER); setIsMobileMenuOpen(false); }}
-                                className="w-full text-left px-4 py-2 rounded-lg bg-primary text-white hover:bg-teal-700 font-medium"
-                            >
-                                Sign up
+                            {!isAuthenticated ? (
+                                <>
+                                    <button
+                                        onClick={() => setCurrentView(ViewState.LOGIN)}
+                                        className={`px-4 py-2 rounded-lg text-gray-600 hover:text-primary font-medium transition-colors ${currentView === ViewState.LOGIN ? 'text-primary' : ''}`}
+                                    >
+                                        Log in
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentView(ViewState.REGISTER)}
+                                        className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-teal-700 font-medium transition-colors shadow-sm hover:shadow-md"
+                                    >
+                                        Sign up
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={handleLogout}
+                                    className="px-4 py-2 rounded-lg text-gray-600 hover:text-red-600 font-medium transition-colors"
+                                >
+                                    Log out
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Mobile Menu Button */}
+                        <div className="md:hidden">
+                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-500 hover:text-gray-900">
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                                </svg>
                             </button>
                         </div>
-                    ) : (
-                        <button 
-                            onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
-                            className="w-full text-left px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 font-medium"
-                        >
-                            Log out
-                        </button>
-                    )}
+                    </div>
                 </div>
-            </div>
-        )}
-      </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderView()}
-      </main>
+                {/* Mobile Menu Dropdown */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden bg-white border-t border-gray-100 p-4 space-y-2 shadow-lg">
+                        {!isAuthenticated && <NavItem view={ViewState.HOME} label="Home" icon={<Icons.Leaf />} />}
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12 py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-            <p className="text-gray-500 text-sm">
-                © {new Date().getFullYear()} {APP_NAME}. Designed for Impact. <br/>
-                <span className="text-xs text-gray-400">Not a substitute for professional medical advice. Always consult your doctor.</span>
-            </p>
+                        {isAuthenticated && (
+                            <>
+                                <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
+                                <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
+                                <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
+                                <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
+                            </>
+                        )}
+
+                        <div className="border-t border-gray-100 pt-2 mt-2">
+                            {!isAuthenticated ? (
+                                <div className="flex flex-col space-y-2">
+                                    <button
+                                        onClick={() => { setCurrentView(ViewState.LOGIN); setIsMobileMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 font-medium"
+                                    >
+                                        Log in
+                                    </button>
+                                    <button
+                                        onClick={() => { setCurrentView(ViewState.REGISTER); setIsMobileMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-2 rounded-lg bg-primary text-white hover:bg-teal-700 font-medium"
+                                    >
+                                        Sign up
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                                    className="w-full text-left px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 font-medium"
+                                >
+                                    Log out
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </nav>
+
+            {/* Main Content */}
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {renderView()}
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-white border-t border-gray-200 py-12">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <p className="text-gray-500 text-sm">
+                        © {new Date().getFullYear()} {APP_NAME}. Designed for Impact. <br />
+                        <span className="text-xs text-gray-400">Not a substitute for professional medical advice. Always consult your doctor.</span>
+                    </p>
+                </div>
+            </footer>
         </div>
-      </footer>
-    </div>
-  );
+    );
 };
 
 export default App;

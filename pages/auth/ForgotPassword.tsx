@@ -5,9 +5,10 @@ import { requestPasswordReset } from '../../services/authService';
 
 interface ForgotPasswordProps {
   changeView: (view: ViewState) => void;
+  onOtpSent: (email: string) => void;
 }
 
-const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView }) => {
+const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -20,9 +21,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView }) => {
     setIsLoading(true);
     try {
       await requestPasswordReset(email);
-      setSuccessMessage('If an account exists for this email, you will receive password reset instructions shortly.');
+      onOtpSent(email); // pass email up so ResetPassword can use it
+      setSuccessMessage(`A 6-digit OTP has been sent to ${email}. Check your inbox.`);
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset email. Please try again.');
+      setError(err.message || 'Failed to send OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +39,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView }) => {
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">Reset Password</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your email address and we'll send you an OTP to reset your password.
           </p>
         </div>
 
@@ -46,7 +48,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView }) => {
             <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">Email address</label>
             <input
               id="email-address" name="email" type="email" autoComplete="email" required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+              disabled={!!successMessage}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm disabled:bg-gray-50 disabled:text-gray-400"
               placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -67,7 +70,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView }) => {
                 onClick={() => changeView(ViewState.RESET_PASSWORD)}
                 className="group relative flex w-full justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
               >
-                Enter OTP Code
+                Enter OTP Code →
               </button>
             ) : (
               <button
@@ -81,10 +84,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView }) => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Sending link...
+                    Sending OTP...
                   </span>
                 ) : (
-                  'Send Reset Link'
+                  'Send OTP'
                 )}
               </button>
             )}
