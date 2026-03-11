@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenAI, Type } from "@google/genai";
 import { Icons } from '../constants';
 import { UserProfile } from '../types';
 
@@ -63,7 +64,7 @@ const Auditor: React.FC = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSendMessage = (e?: React.FormEvent, predefinedText?: string) => {
+  const handleSendMessage = async (e?: React.FormEvent, predefinedText?: string) => {
     e?.preventDefault();
     const textToSend = predefinedText || inputText;
     if (!textToSend.trim()) return;
@@ -80,79 +81,105 @@ const Auditor: React.FC = () => {
     }
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const newBotMsg: ChatMessage = {
+    try {
+      if (process.env.GEMINI_API_KEY) {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        
+        const prompt = `
+          The user wants to make: "${textToSend}".
+          
+          User Profile:
+          - Diabetes Type: ${userProfile.type}
+          - Dietary Preferences: ${settingsForm.dietaryOptions.join(', ')}
+          - Allergies: ${settingsForm.allergies.join(', ')}
+          - Ingredients to Avoid: ${settingsForm.ingredientsToAvoid.join(', ')}
+          - Servings: ${settingsForm.servings}
+          - Country/Cuisine Context: ${settingsForm.country}
+
+          Apply the "Smart Swap" technique: 
+          1. Identify ingredients in the traditional recipe that are unhealthy for this user's profile (e.g., high glycemic index, allergens, non-compliant with diet).
+          2. Swap them with healthier, compliant alternatives (e.g., white rice -> cauliflower rice, sugar -> stevia/monk fruit, pork -> chicken/beef if Halal).
+          3. Provide a friendly chat message explaining the specific smart swaps you made and why they are better for their profile.
+          4. Provide 1 to 2 modified recipe ideas incorporating these smart swaps.
+        `;
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                message: {
+                  type: Type.STRING,
+                  description: "A friendly message explaining the smart swaps made based on the user's profile."
+                },
+                recipes: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      description: { type: Type.STRING },
+                      tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      preparation: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      instructions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ["title", "description", "tags", "ingredients", "instructions"]
+                  }
+                }
+              },
+              required: ["message", "recipes"]
+            }
+          }
+        });
+
+        const responseText = response.text;
+        if (responseText) {
+          const parsedResponse = JSON.parse(responseText);
+          
+          const newBotMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: 'bot',
+            text: parsedResponse.message
+          };
+          
+          setMessages(prev => [...prev, newBotMsg]);
+          
+          if (parsedResponse.recipes && parsedResponse.recipes.length > 0) {
+            const newRecipes = parsedResponse.recipes.map((r: any, idx: number) => ({
+              id: `r-${Date.now()}-${idx}`,
+              ...r
+            }));
+            setRecipeIdeas(newRecipes);
+          }
+        }
+      } else {
+        // Fallback if no API key
+        setTimeout(() => {
+          const newBotMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: 'bot',
+            text: `I'd love to help you smart-swap "${textToSend}", but my AI brain (API Key) isn't connected right now!`
+          };
+          setMessages(prev => [...prev, newBotMsg]);
+          setIsTyping(false);
+        }, 1000);
+        return;
+      }
+    } catch (error) {
+      console.error("Error generating smart swap:", error);
+      const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: `${newUserMsg.text} is a classic dish. Since your dietary preferences include Halal, I've adapted it to keep it compliant while staying true to the flavors. It's naturally gluten-free, dairy-free, and avoids peanuts. Here's a recipe idea for ${settingsForm.servings}—tap Preview to see full details!`
+        text: "Sorry, I encountered an error while trying to process that recipe. Please try again."
       };
-      setMessages(prev => [...prev, newBotMsg]);
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
       setIsTyping(false);
-
-      // Populate recipe ideas
-      setRecipeIdeas([
-        {
-          id: 'r1',
-          title: `Halal Beef ${newUserMsg.text} (Beef Version)`,
-          tags: ['Soup', settingsForm.servings],
-          description: `Comforting sour soup featuring tender beef chunks, green beans, radish, eggplant, and kangkong in a flavorful tamarind broth.`,
-          ingredients: [
-            '500 g Beef chuck',
-            '1 medium White onion',
-            '6 clove Garlic',
-            '3 whole Bay leaves',
-            '1 tsp Black peppercorns',
-            '60 ml Gluten-free soy sauce (tamari)',
-            '60 ml White cane vinegar',
-            '120 ml Water',
-            '2 tbsp Cooking oil',
-            '1 tsp Brown sugar',
-            'Salt'
-          ],
-          preparation: [
-            'Cut the beef chuck into 4-5 cm chunks, trimming excess fat as desired.',
-            'Peel and slice the white onion into thin rings.',
-            'Peel and crush 4 cloves of garlic, then mince the remaining 2 cloves.',
-            'Measure out the gluten-free soy sauce (tamari), white cane vinegar, and water into a bowl and mix together to form the adobo marinade.'
-          ],
-          instructions: [
-            'Place the beef chunks in a bowl, pour the adobo marinade over them, and mix well to coat. Cover and marinate for at least 15 minutes at room temperature while you prepare the remaining ingredients.',
-            'Heat the cooking oil in a heavy-bottomed pot or kawali over medium-high heat. Add the crushed garlic and sliced onion, and sauté for 2-3 minutes until softened and fragrant.',
-            'Add the marinated beef chunks (reserve the marinade) and brown on all sides, about 5-7 minutes.',
-            'Pour in the reserved marinade, water, bay leaves, and black peppercorns. Bring to a boil, then reduce heat to low, cover, and simmer for 1.5 to 2 hours, or until the beef is very tender.',
-            'Stir in the brown sugar and season with salt to taste. Simmer for another 5 minutes to let the flavors meld.'
-          ]
-        },
-        {
-          id: 'r2',
-          title: `Fish ${newUserMsg.text} for Variety`,
-          tags: ['Soup', settingsForm.servings],
-          description: `Light and tangy soup with fresh fish fillets, tomatoes, okra, and string beans simmered in tamarind soup—another Halal option.`,
-          ingredients: [
-            '500 g White fish fillets (e.g., tilapia or cod)',
-            '1 medium Red onion',
-            '4 clove Garlic',
-            '2 medium Tomatoes',
-            '60 ml White cane vinegar',
-            '60 ml Water',
-            '2 tbsp Cooking oil',
-            'Salt and pepper to taste'
-          ],
-          preparation: [
-            'Cut the fish fillets into serving-sized pieces.',
-            'Slice the red onion and tomatoes.',
-            'Mince the garlic.'
-          ],
-          instructions: [
-            'Heat oil in a pan over medium heat. Sauté garlic, onion, and tomatoes until softened.',
-            'Add the fish fillets and cook for 2 minutes per side.',
-            'Pour in the vinegar and water. Do not stir immediately; let it boil for 2 minutes to cook off the strong vinegar taste.',
-            'Season with salt and pepper. Simmer for another 3-5 minutes until the fish is cooked through.'
-          ]
-        }
-      ]);
-    }, 1500);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -349,9 +376,9 @@ const Auditor: React.FC = () => {
             recipeIdeas.map((recipe) => (
               <div key={recipe.id} className="border border-gray-200 rounded-xl p-4 hover:border-primary/50 transition-colors bg-white shadow-sm">
                 <h3 className="font-bold text-gray-900 mb-2">{recipe.title}</h3>
-                <div className="flex gap-2 mb-3">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {recipe.tags.map(tag => (
-                    <span key={tag} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs font-medium rounded-md flex items-center gap-1">
+                    <span key={tag} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
                       {tag === 'Soup' ? <Icons.Leaf /> : <Icons.User />} {tag}
                     </span>
                   ))}
@@ -360,15 +387,12 @@ const Auditor: React.FC = () => {
                   {recipe.description}
                 </p>
                 <div className="flex gap-2">
-                  <button className="flex-1 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5">
-                    <Icons.Check /> Modify
-                  </button>
                   <button 
                     onClick={() => {
                       setSelectedRecipe(recipe);
                       setIsPreviewOpen(true);
                     }}
-                    className="flex-1 py-1.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    className="w-full py-1.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <Icons.Chart /> Preview
                   </button>
