@@ -80,3 +80,25 @@ class PasswordResetOTP(models.Model):
 
     def __str__(self):
         return f"OTP for {self.user.email}"
+
+
+class RegistrationOTP(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='registration_otps')
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def is_valid(self):
+        """OTP is valid if it was created within 10 minutes and has not been used."""
+        expiry = self.created_at + timezone.timedelta(minutes=10)
+        return not self.is_used and timezone.now() <= expiry
+
+    @staticmethod
+    def generate_otp():
+        return ''.join(random.choices(string.digits, k=6))
+
+    def __str__(self):
+        return f"Registration OTP for {self.user.email}"

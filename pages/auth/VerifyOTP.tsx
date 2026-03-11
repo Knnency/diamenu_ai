@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { ViewState } from '../../types';
 import { Icons } from '../../constants';
+import { verifyRegistrationOTP, sendRegistrationOTP } from '../../services/authService';
 
 interface VerifyOTPProps {
   changeView: (view: ViewState) => void;
-  onVerify: () => void;
+  onVerify: (userData: object) => void;
+  email: string;
+  onResendOTP?: () => Promise<void>;
 }
 
-const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify }) => {
+const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onResendOTP }) => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,24 +28,33 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify }) => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const userData = await verifyRegistrationOTP(email, otp);
+      onVerify(userData);
+    } catch (err: any) {
+      setError(err.message || 'Invalid verification code. Please try again.');
+    } finally {
       setIsLoading(false);
-      // Mock successful OTP verification
-      onVerify();
-    }, 1000);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setIsResending(true);
     setResendMessage('');
     setError('');
     
-    // Simulate resend API call
-    setTimeout(() => {
+    try {
+      if (onResendOTP) {
+        await onResendOTP();
+      } else {
+        await sendRegistrationOTP(email);
+      }
+      setResendMessage('A new verification code has been sent to your email.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend verification code.');
+    } finally {
       setIsResending(false);
-      setResendMessage('A new OTP has been sent to your email.');
-    }, 1000);
+    }
   };
 
   return (

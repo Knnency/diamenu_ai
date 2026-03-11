@@ -65,6 +65,32 @@ export const registerWithEmail = async (name: string, email: string, password: s
   return data;
 };
 
+export const sendRegistrationOTP = async (email: string) => {
+  const res = await apiFetch('/api/auth/send-registration-otp/', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) {
+    throw new Error(data.detail || 'Failed to send verification code.');
+  }
+  return data;
+};
+
+export const verifyRegistrationOTP = async (email: string, otp: string) => {
+  const res = await apiFetch('/api/auth/verify-registration-otp/', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) {
+    throw new Error(data.detail || 'Invalid verification code.');
+  }
+  // Store the authentication tokens and return user data
+  storeTokens(data.access, data.refresh, data.user);
+  return data.user;
+};
+
 export const loginWithGoogle = async (credential: string) => {
   const res = await apiFetch('/api/auth/google/', {
     method: 'POST',

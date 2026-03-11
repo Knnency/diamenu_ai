@@ -9,7 +9,7 @@ import google.auth.transport.requests
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import User, UserProfile, PasswordResetOTP
+from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP
 from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
 
 
@@ -20,7 +20,24 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        
+        # Check if user exists and has verified email through OTP
+        email = serializer.validated_data.get('email')
+        try:
+            user = User.objects.get(email=email)
+            # Check if user has a verified registration OTP
+            if not RegistrationOTP.objects.filter(user=user, is_used=True).exists():
+                return Response({'detail': 'Email verification required. Please verify your email first.'}, 
+                              status=status.HTTP_400_BAD_REQUEST)
+            # User exists and has verified OTP, update their details
+            user.name = serializer.validated_data.get('name')
+            user.set_password(serializer.validated_data.get('password'))
+            user.is_active = True
+            user.save()
+        except User.DoesNotExist:
+            # User doesn't exist, create new user (fallback for direct registration)
+            user = serializer.save()
+        
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
@@ -192,3 +209,96 @@ class PasswordResetConfirmView(APIView):
         user.save()
 
         return Response({'detail': 'Password reset successfully. You can now sign in.'}, status=status.HTTP_200_OK)
+
+
+# ─── Registration OTP ────────────────────────────────────────────────────────────
+
+class SendRegistrationOTPView(APIView):
+    """Send OTP to user's email for registration verification."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'detail': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user already exists
+        if User.objects.filter(email=email).exists():
+            return Response({'detail': 'An account with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a temporary user record for OTP (will be activated after verification)
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'name': email.split('@')[0], 'is_active': False}
+        )
+
+        # Invalidate any previous unused OTPs for this email
+        RegistrationOTP.objects.filter(user=user, is_used=False).update(is_used=True)
+
+        # Generate and save new OTP
+        otp_code = RegistrationOTP.generate_otp()
+        RegistrationOTP.objects.create(user=user, otp=otp_code)
+
+        # Send email
+        try:
+            send_mail(
+                subject='DiaMenu — Your Registration Verification Code',
+                message=(
+                    f'Hello!\n\n'
+                    f'Your one-time verification code for DiaMenu registration is:\n\n'
+                    f'    {otp_code}\n\n'
+                    f'This code is valid for 10 minutes. Please enter it on the registration page to complete your account creation.\n\n'
+                    f'If you did not request this registration, you can safely ignore this email.\n\n'
+                    f'— The DiaMenu Team'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            return Response(
+                {'detail': f'Failed to send verification email. Please check your email settings. Error: {str(e)}'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response({'detail': 'Verification code sent successfully.'}, status=status.HTTP_200_OK)
+
+
+class VerifyRegistrationOTPView(APIView):
+    """Verify OTP and complete registration."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        otp_code = request.data.get('otp', '').strip()
+
+        if not email or not otp_code:
+            return Response({'detail': 'Email and verification code are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'Invalid verification code or email.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the most recent unused OTP for this user
+        otp_obj = RegistrationOTP.objects.filter(user=user, otp=otp_code, is_used=False).first()
+
+        if not otp_obj or not otp_obj.is_valid():
+            return Response({'detail': 'Invalid or expired verification code. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark OTP as used so it can't be replayed
+        otp_obj.is_used = True
+        otp_obj.save()
+
+        # Activate the user account
+        user.is_active = True
+        user.save()
+
+        # Generate authentication tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data,
+        }, status=status.HTTP_200_OK)

@@ -11,7 +11,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import Settings from './pages/Settings';
 import { ViewState } from './types';
 import { APP_NAME, Icons } from './constants';
-import { logout as authLogout, getStoredUser } from './services/authService';
+import { logout as authLogout, getStoredUser, sendRegistrationOTP, registerWithEmail } from './services/authService';
 
 const App: React.FC = () => {
     const storedUser = getStoredUser();
@@ -20,11 +20,41 @@ const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!storedUser);
     const [user, setUser] = useState<{ name?: string; email?: string } | null>(storedUser);
     const [resetEmail, setResetEmail] = useState('');
+    const [pendingRegistration, setPendingRegistration] = useState<{ name: string; email: string; password: string } | null>(null);
 
     const handleLogin = (userData: object) => {
         setUser(userData as { name?: string; email?: string });
         setIsAuthenticated(true);
         setCurrentView(ViewState.AUDITOR);
+    };
+
+    const handleRegistrationStart = async (userData: { name: string; email: string; password: string }) => {
+        try {
+            // Send OTP for email verification
+            await sendRegistrationOTP(userData.email);
+            // Store pending registration data
+            setPendingRegistration(userData);
+            // Navigate to OTP verification
+            setCurrentView(ViewState.VERIFY_OTP);
+        } catch (err: any) {
+            // If OTP sending fails, show error in registration
+            throw new Error(err.message || 'Failed to send verification code.');
+        }
+    };
+
+    const handleRegistrationComplete = async (userData: object) => {
+        if (!pendingRegistration) return;
+        
+        try {
+            // Clear pending registration
+            setPendingRegistration(null);
+            // Login the user with the returned data
+            handleLogin(userData);
+        } catch (err: any) {
+            // If registration fails, go back to registration form
+            setCurrentView(ViewState.REGISTER);
+            throw new Error(err.message || 'Registration failed.');
+        }
     };
 
     const handleLogout = () => {
@@ -41,7 +71,13 @@ const App: React.FC = () => {
             case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.PROFILE: return isAuthenticated ? <Dashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
-            case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleLogin} />;
+            case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleRegistrationStart} />;
+            case ViewState.VERIFY_OTP: return <VerifyOTP 
+                changeView={setCurrentView} 
+                onVerify={handleRegistrationComplete} 
+                email={pendingRegistration?.email || ''}
+                onResendOTP={() => pendingRegistration ? sendRegistrationOTP(pendingRegistration.email) : Promise.resolve()}
+            />;
             case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} onOtpSent={setResetEmail} />;
             case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} email={resetEmail} />;
             case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
