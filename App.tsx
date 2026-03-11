@@ -9,6 +9,7 @@ import VerifyOTP from './pages/auth/VerifyOTP';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Settings from './pages/Settings';
+import SavedRecipes from './pages/SavedRecipes';
 import { ViewState } from './types';
 import { APP_NAME, Icons } from './constants';
 import { logout as authLogout, getStoredUser, sendRegistrationOTP, registerWithEmail } from './services/authService';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
     const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(!!storedUser);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [user, setUser] = useState<{ name?: string; email?: string } | null>(storedUser);
     const [resetEmail, setResetEmail] = useState('');
     const [pendingRegistration, setPendingRegistration] = useState<{ name: string; email: string; password: string } | null>(null);
@@ -62,7 +64,16 @@ const App: React.FC = () => {
         setUser(null);
         setIsAuthenticated(false);
         setCurrentView(ViewState.HOME);
+        setIsLogoutModalOpen(false);
     };
+
+    React.useEffect(() => {
+        const handleTriggerLogout = () => {
+            setIsLogoutModalOpen(true);
+        };
+        window.addEventListener('trigger-logout', handleTriggerLogout);
+        return () => window.removeEventListener('trigger-logout', handleTriggerLogout);
+    }, []);
 
     const renderView = () => {
         switch (currentView) {
@@ -81,17 +92,20 @@ const App: React.FC = () => {
             case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} onOtpSent={setResetEmail} />;
             case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} email={resetEmail} />;
             case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.SAVED_RECIPES: return isAuthenticated ? <SavedRecipes /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             default: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
         }
     };
 
     const NavItem = ({ view, label, icon }: { view: ViewState, label: string, icon: any }) => (
-        <button
-            onClick={() => { setCurrentView(view); setIsMobileMenuOpen(false); }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentView === view ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
+        <button 
+            onClick={() => { setCurrentView(view); setIsMobileMenuOpen(false); }}  
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${currentView === view ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50 group'}`}
         >
             {icon}
-            <span>{label}</span>
+            <span className={`transition-all duration-300 ${currentView === view ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs'}`}>
+                {label}
+            </span>
         </button>
     );
 
@@ -118,6 +132,7 @@ const App: React.FC = () => {
                                 <>
                                     <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
                                     <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
+                                    <NavItem view={ViewState.SAVED_RECIPES} label="Saved" icon={<Icons.Bookmark />} />
                                     <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
                                     <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
                                 </>
@@ -127,13 +142,13 @@ const App: React.FC = () => {
 
                             {!isAuthenticated ? (
                                 <>
-                                    <button
+                                    <button 
                                         onClick={() => setCurrentView(ViewState.LOGIN)}
                                         className={`px-4 py-2 rounded-lg text-gray-600 hover:text-primary font-medium transition-colors ${currentView === ViewState.LOGIN ? 'text-primary' : ''}`}
                                     >
                                         Log in
                                     </button>
-                                    <button
+                                    <button 
                                         onClick={() => setCurrentView(ViewState.REGISTER)}
                                         className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-teal-700 font-medium transition-colors shadow-sm hover:shadow-md"
                                     >
@@ -141,8 +156,8 @@ const App: React.FC = () => {
                                     </button>
                                 </>
                             ) : (
-                                <button
-                                    onClick={handleLogout}
+                                <button 
+                                    onClick={() => setIsLogoutModalOpen(true)}
                                     className="px-4 py-2 rounded-lg text-gray-600 hover:text-red-600 font-medium transition-colors"
                                 >
                                     Log out
@@ -170,6 +185,7 @@ const App: React.FC = () => {
                             <>
                                 <NavItem view={ViewState.PROFILE} label="Dashboard" icon={<Icons.Chart />} />
                                 <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
+                                <NavItem view={ViewState.SAVED_RECIPES} label="Saved" icon={<Icons.Bookmark />} />
                                 <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
                                 <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
                             </>
@@ -178,13 +194,13 @@ const App: React.FC = () => {
                         <div className="border-t border-gray-100 pt-2 mt-2">
                             {!isAuthenticated ? (
                                 <div className="flex flex-col space-y-2">
-                                    <button
+                                    <button 
                                         onClick={() => { setCurrentView(ViewState.LOGIN); setIsMobileMenuOpen(false); }}
                                         className="w-full text-left px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 font-medium"
                                     >
                                         Log in
                                     </button>
-                                    <button
+                                    <button 
                                         onClick={() => { setCurrentView(ViewState.REGISTER); setIsMobileMenuOpen(false); }}
                                         className="w-full text-left px-4 py-2 rounded-lg bg-primary text-white hover:bg-teal-700 font-medium"
                                     >
@@ -192,8 +208,8 @@ const App: React.FC = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <button
-                                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                                <button 
+                                    onClick={() => { setIsLogoutModalOpen(true); setIsMobileMenuOpen(false); }}
                                     className="w-full text-left px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 font-medium"
                                 >
                                     Log out
@@ -218,6 +234,39 @@ const App: React.FC = () => {
                     </p>
                 </div>
             </footer>
+
+            {/* Logout Confirmation Modal */}
+            {isLogoutModalOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+                        <div className="p-6">
+                            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Confirm Logout</h3>
+                            <p className="text-gray-500 text-sm">
+                                Are you sure you want to log out? You will need to sign in again to access your saved recipes and meal plans.
+                            </p>
+                        </div>
+                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+                            <button 
+                                onClick={() => setIsLogoutModalOpen(false)}
+                                className="flex-1 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleLogout}
+                                className="flex-1 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm"
+                            >
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
