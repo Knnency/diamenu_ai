@@ -42,7 +42,8 @@ export enum ViewState {
   VERIFY_OTP,
   FORGOT_PASSWORD,
   RESET_PASSWORD,
-  SETTINGS
+  SETTINGS,
+  SAVED_RECIPES
 }
 
 export interface BloodSugarLog {

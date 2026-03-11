@@ -278,24 +278,6 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          {/* Allergens */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Allergens</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {allergenOptions.map(option => (
-                <label key={option} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={profile.allergens.includes(option)}
-                    onChange={() => handleAllergenChange(option)}
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-gray-600">{option}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           {/* Doctor's Diagnosis */}
           <div className="border-t border-gray-100 pt-6">
             <label className="block text-lg font-medium text-gray-900 mb-2">Doctor's Diagnosis</label>
