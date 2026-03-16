@@ -52,6 +52,7 @@ class UserProfile(models.Model):
     diagnosis = models.TextField(blank=True)
     hba1c = models.CharField(max_length=20, blank=True)
     fbs = models.CharField(max_length=20, blank=True)
+    total_cholesterol = models.CharField(max_length=20, blank=True)
     medications = models.TextField(blank=True)
     restrictions = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -102,3 +103,27 @@ class RegistrationOTP(models.Model):
 
     def __str__(self):
         return f"Registration OTP for {self.user.email}"
+
+
+class SavedRecipe(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_recipes')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    tags = models.JSONField(default=list, blank=True)
+    ingredients = models.JSONField(default=list, blank=True)
+    preparation = models.JSONField(default=list, blank=True)
+    instructions = models.JSONField(default=list, blank=True)
+    servings = models.CharField(max_length=50, default='2 people')
+    country = models.CharField(max_length=100, default='Philippines')
+    dietary_options = models.JSONField(default=list, blank=True)
+    allergies = models.JSONField(default=list, blank=True)
+    ingredients_to_avoid = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['user', 'title']
+
+    def __str__(self):
+        return f"{self.title} - {self.user.email}"

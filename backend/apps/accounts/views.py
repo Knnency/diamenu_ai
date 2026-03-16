@@ -9,8 +9,9 @@ import google.auth.transport.requests
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP
-from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer
+from django.db import transaction
+from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP, SavedRecipe
+from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -50,14 +51,28 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        # Use select_related to avoid N+1 queries
+        user = User.objects.select_related('profile').get(pk=request.user.pk)
+        serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def put(self, request):
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        # Use select_for_update to prevent race conditions and optimize query
+        with transaction.atomic():
+            profile, created = UserProfile.objects.select_for_update().get_or_create(
+                user=request.user,
+                defaults={
+                    'diabetes_type': 'Type 2',
+                    'dietary_preferences': [],
+                    'allergens': []
+                }
+            )
+            
+            # Only update changed fields for better performance
+            serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
         return Response(serializer.data)
 
 
@@ -302,3 +317,26 @@ class VerifyRegistrationOTPView(APIView):
             'refresh': str(refresh),
             'user': UserSerializer(user).data,
         }, status=status.HTTP_200_OK)
+
+
+# ─── Saved Recipes ────────────────────────────────────────────────────────────
+
+class SavedRecipeListCreateView(generics.ListCreateAPIView):
+    """List all saved recipes for the authenticated user or create a new saved recipe."""
+    serializer_class = SavedRecipeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedRecipe.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class SavedRecipeDetailView(generics.RetrieveDestroyAPIView):
+    """Retrieve or delete a specific saved recipe."""
+    serializer_class = SavedRecipeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedRecipe.objects.filter(user=self.request.user)

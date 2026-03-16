@@ -134,4 +134,105 @@ export const confirmPasswordReset = async (reset_token: string, new_password: st
   return data;
 };
 
+// --- Recipe Saving API calls ---
+export interface RecipeIdea {
+  id: string;
+  title: string;
+  tags: string[];
+  description: string;
+  ingredients?: string[];
+  preparation?: string[];
+  instructions?: string[];
+}
+
+export interface SavedRecipe extends RecipeIdea {
+  servings: string;
+  country: string;
+  dietary_options: string[];
+  allergies: string[];
+  ingredients_to_avoid: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export const saveRecipe = async (recipe: RecipeIdea, settings: {
+  servings: string;
+  country: string;
+  dietaryOptions: string[];
+  allergies: string[];
+  ingredientsToAvoid: string[];
+}): Promise<SavedRecipe> => {
+  const res = await apiFetch('/api/auth/saved-recipes/', {
+    method: 'POST',
+    body: JSON.stringify({
+      title: recipe.title,
+      description: recipe.description,
+      tags: recipe.tags,
+      ingredients: recipe.ingredients || [],
+      preparation: recipe.preparation || [],
+      instructions: recipe.instructions || [],
+      servings: settings.servings,
+      country: settings.country,
+      dietary_options: settings.dietaryOptions,
+      allergies: settings.allergies,
+      ingredients_to_avoid: settings.ingredientsToAvoid,
+    }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to save recipe.');
+  return data;
+};
+
+export const getSavedRecipes = async (): Promise<SavedRecipe[]> => {
+  const res = await apiFetch('/api/auth/saved-recipes/', {
+    method: 'GET',
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to fetch saved recipes.');
+  return data.results || data;
+};
+
+export const deleteSavedRecipe = async (recipeId: number): Promise<void> => {
+  const res = await apiFetch(`/api/auth/saved-recipes/${recipeId}/`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const data = await safeJson(res);
+    throw new Error(data.detail || 'Failed to delete saved recipe.');
+  }
+};
+
+// --- User Profile Settings API calls ---
+export interface UserSettings {
+  age: number | null;
+  diabetes_type: string;
+  dietary_preferences: string[];
+  allergens: string[];
+  diagnosis: string;
+  hba1c: string;
+  fbs: string;
+  total_cholesterol: string;
+  medications: string;
+  restrictions: string;
+}
+
+export const getUserSettings = async (): Promise<UserSettings> => {
+  const res = await apiFetch('/api/auth/profile/', {
+    method: 'GET',
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to fetch user settings.');
+  return data.profile;
+};
+
+export const updateUserSettings = async (settings: UserSettings): Promise<UserSettings> => {
+  const res = await apiFetch('/api/auth/profile/', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to update user settings.');
+  return data.profile || data;
+};
+
 export default apiFetch;

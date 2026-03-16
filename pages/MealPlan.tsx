@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
-import { generateMealPlan, evaluateWeeklyPlan } from '../services/geminiService';
+import React, { useState, useEffect } from 'react';
+import { evaluateWeeklyPlan } from '../services/geminiService';
+import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
+import { getSavedRecipes, SavedRecipe } from '../services/authService';
+import { recipeImageService } from '../services/RecipeImageService';
 import FoodLoader from '../components/FoodLoader';
+import RecipePreviewModal, { BaseRecipe } from '../components/RecipePreviewModal';
+import { ViewState } from '../types';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
-const MealPlan: React.FC = () => {
+interface MealPlanProps {
+  changeView: (view: ViewState) => void;
+}
+
+const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
   const [activeDay, setActiveDay] = useState('Mon');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingMeal, setEditingMeal] = useState<{ day: string, type: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [evaluations, setEvaluations] = useState<Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>> | null>(null);
+
+  const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
+  const [previewRecipe, setPreviewRecipe] = useState<BaseRecipe | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState<string | null>(null);
 
   // Initial empty or default plan
   const [plan, setPlan] = useState<Record<string, Record<string, string>>>({
@@ -21,24 +34,28 @@ const MealPlan: React.FC = () => {
     'Wed': { 'Breakfast': 'Scrambled Egg & Wheat Bread', 'Lunch': 'Sinigang na Hipon', 'Dinner': 'Cauliflower Rice Stir Fry', 'Snack': 'Greek Yogurt' },
   });
 
-  const handleGeneratePlan = async () => {
-    setIsGenerating(true);
-    setError(null);
-    setEvaluations(null);
-    try {
-      // Get user profile from local storage
-      const savedProfile = localStorage.getItem('userProfile');
-      const userProfile = savedProfile ? JSON.parse(savedProfile) : undefined;
-      
-      const newPlan = await generateMealPlan(userProfile);
-      setPlan(newPlan);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to generate meal plan. Please check your connection or API key.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  useEffect(() => {
+    const fetchPlanAndRecipes = async () => {
+      setIsLoading(true);
+      try {
+        const savedPlan = await getMealPlan();
+        setPlan(savedPlan);
+      } catch (err: any) {
+        if (err.message !== 'PLAN_NOT_FOUND') {
+          console.error("Failed to load meal plan:", err);
+          setError("Failed to load your latest meal plan.");
+        }
+      }
+      try {
+        const allSavedRecipes = await getSavedRecipes();
+        setSavedRecipes(allSavedRecipes);
+      } catch (err) {
+        console.error("Failed to load saved recipes:", err);
+      }
+      setIsLoading(false);
+    };
+    fetchPlanAndRecipes();
+  }, []);
 
   const handleEvaluatePlan = async () => {
     setIsEvaluating(true);
@@ -59,30 +76,38 @@ const MealPlan: React.FC = () => {
     setEditValue(currentValue || '');
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingMeal) {
-      setPlan(prev => ({
-        ...prev,
+      const updatedPlan = {
+        ...plan,
         [editingMeal.day]: {
-          ...(prev[editingMeal.day] || {}),
+          ...(plan[editingMeal.day] || {}),
           [editingMeal.type]: editValue
         }
-      }));
-      
-      // Clear evaluation for this specific meal if it exists
-      if (evaluations && evaluations[editingMeal.day] && evaluations[editingMeal.day][editingMeal.type]) {
-          setEvaluations(prev => {
-              if (!prev) return prev;
-              const newEvals = { ...prev };
-              if (newEvals[editingMeal.day]) {
-                  newEvals[editingMeal.day] = { ...newEvals[editingMeal.day] };
-                  delete newEvals[editingMeal.day][editingMeal.type];
-              }
-              return newEvals;
-          });
+      };
+
+      try {
+        await saveMealPlan(updatedPlan);
+        setPlan(updatedPlan);
+        
+        // Clear evaluation for this specific meal if it exists
+        if (evaluations && evaluations[editingMeal.day] && evaluations[editingMeal.day][editingMeal.type]) {
+            setEvaluations(prev => {
+                if (!prev) return prev;
+                const newEvals = { ...prev };
+                if (newEvals[editingMeal.day]) {
+                    newEvals[editingMeal.day] = { ...newEvals[editingMeal.day] };
+                    delete newEvals[editingMeal.day][editingMeal.type];
+                }
+                return newEvals;
+            });
+        }
+        
+        setEditingMeal(null);
+      } catch (err) {
+        console.error("Failed to save edited meal plan:", err);
+        setError("Failed to save your edit to the database.");
       }
-      
-      setEditingMeal(null);
     }
   };
 
@@ -90,10 +115,66 @@ const MealPlan: React.FC = () => {
     setEditingMeal(null);
   };
 
-  if (isGenerating || isEvaluating) {
+  const handleDeleteMeal = async (day: string, type: string) => {
+    const updatedPlan = {
+      ...plan,
+      [day]: { ...plan[day] }
+    };
+    delete updatedPlan[day][type];
+    
+    try {
+      await saveMealPlan(updatedPlan);
+      setPlan(updatedPlan);
+      if (evaluations && evaluations[day] && evaluations[day][type]) {
+          setEvaluations(prev => {
+              if (!prev) return prev;
+              const newEvals = { ...prev };
+              if (newEvals[day]) {
+                  newEvals[day] = { ...newEvals[day] };
+                  delete newEvals[day][type];
+              }
+              return newEvals;
+          });
+      }
+    } catch (err) {
+      console.error("Failed to delete meal:", err);
+      setError("Failed to delete meal.");
+    }
+  };
+
+  const handlePreview = async (mealName: string) => {
+    setIsPreviewLoading(mealName);
+    const found = savedRecipes.find(r => r.title === mealName);
+    let previewData: BaseRecipe;
+    
+    if (found) {
+      let imageUrl = `https://picsum.photos/seed/recipe-${found.id}/400/300`;
+      try {
+        imageUrl = await recipeImageService.generateRecipeImage(found.title, found.description, found.tags);
+      } catch(e) {}
+      previewData = { ...found, imageUrl };
+    } else {
+      let imageUrl = `https://picsum.photos/seed/recipe-${mealName.replace(/\s+/g, '-')}/400/300`;
+      try {
+        imageUrl = await recipeImageService.generateRecipeImage(mealName, mealName, []);
+      } catch(e) {}
+      previewData = {
+        id: mealName,
+        title: mealName,
+        description: 'No detailed description available. This meal might be from an AI suggestion rather than your saved recipes.',
+        imageUrl,
+        tags: [],
+      };
+    }
+    
+    setPreviewRecipe(previewData);
+    setIsPreviewLoading(null);
+  };
+
+  if (isEvaluating) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <FoodLoader status={isGenerating ? "AI is crafting your personalized 7-day meal plan..." : "Doctor AI is evaluating your meal plan..."} />
+        <FoodLoader status="Doctor AI is evaluating your meal plan..." />
       </div>
     );
   }
@@ -112,12 +193,6 @@ const MealPlan: React.FC = () => {
               className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
                 Analyze Plan
-            </button>
-            <button 
-              onClick={handleGeneratePlan}
-              className="px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow-sm hover:bg-teal-700 transition-colors"
-            >
-                Generate with AI
             </button>
             <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50">
                 Export List
@@ -214,12 +289,29 @@ const MealPlan: React.FC = () => {
                     </div>
 
                     {!isEditing && (
-                        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity mt-2">
+                        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity mt-2 gap-2">
+                             {isPlanned && (
+                               <>
+                                 <button 
+                                    onClick={() => handlePreview(mealName)}
+                                    disabled={isPreviewLoading === mealName}
+                                    className="text-xs px-3 py-1 bg-indigo-100 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-200 transition-colors disabled:opacity-50"
+                                 >
+                                    {isPreviewLoading === mealName ? '...' : 'Preview'}
+                                 </button>
+                                 <button 
+                                    onClick={() => handleDeleteMeal(activeDay, type)}
+                                    className="text-xs px-3 py-1 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200 transition-colors"
+                                 >
+                                    Delete
+                                 </button>
+                               </>
+                             )}
                              <button 
-                                onClick={() => handleEditClick(activeDay, type, plan[activeDay]?.[type])}
-                                className="text-xs text-primary font-semibold hover:underline"
+                                onClick={() => changeView(ViewState.AUDITOR)}
+                                className="text-xs px-3 py-1 bg-primary text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors"
                              >
-                                Edit
+                                {isPlanned ? 'Change' : 'Plan'}
                              </button>
                         </div>
                     )}
@@ -237,6 +329,13 @@ const MealPlan: React.FC = () => {
             </p>
         </div>
       </div>
+      {previewRecipe && (
+        <RecipePreviewModal
+          recipe={previewRecipe}
+          onClose={() => setPreviewRecipe(null)}
+          onImageError={() => setPreviewRecipe(prev => prev ? { ...prev, imageUrl: `https://picsum.photos/seed/fallback-${prev.id}/400/300` } : null)}
+        />
+      )}
     </div>
   );
 };

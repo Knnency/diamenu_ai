@@ -4,6 +4,7 @@ from .views import (
     RegisterView, LoginView, ProfileView, GoogleLoginView,
     PasswordResetRequestView, PasswordResetVerifyOTPView, PasswordResetConfirmView,
     SendRegistrationOTPView, VerifyRegistrationOTPView,
+    SavedRecipeListCreateView, SavedRecipeDetailView,
 )
 
 urlpatterns = [
@@ -17,5 +18,7 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset/verify-otp/', PasswordResetVerifyOTPView.as_view(), name='password-reset-verify-otp'),
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+    path('saved-recipes/', SavedRecipeListCreateView.as_view(), name='saved-recipes-list-create'),
+    path('saved-recipes/<int:pk>/', SavedRecipeDetailView.as_view(), name='saved-recipe-detail'),
 ]
 

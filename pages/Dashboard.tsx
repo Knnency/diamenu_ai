@@ -1,9 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { BloodSugarLog } from '../types';
+import { getBloodSugarLogs, saveBloodSugarLog, deleteBloodSugarLog } from '../services/bloodSugarService';
+import { generateHealthAdvice } from '../services/geminiService';
+import { Icons } from '../constants';
 
 const Dashboard: React.FC = () => {
   const [logs, setLogs] = useState<BloodSugarLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const prevLogsRef = useRef<number>(0);
+  
   const [newLog, setNewLog] = useState<Partial<BloodSugarLog>>({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
@@ -12,76 +22,106 @@ const Dashboard: React.FC = () => {
     notes: ''
   });
 
-  useEffect(() => {
-    // Load logs from local storage
-    const savedLogs = localStorage.getItem('bloodSugarLogs');
-    if (savedLogs) {
-      try {
-        setLogs(JSON.parse(savedLogs));
-      } catch (e) {
-        console.error("Failed to parse logs", e);
-      }
-    } else {
-      // Add some dummy data for demonstration
-      const dummyData: BloodSugarLog[] = [
-        { id: '1', date: '2023-10-20', time: '07:00', value: 110, context: 'Fasting' },
-        { id: '2', date: '2023-10-20', time: '14:00', value: 145, context: 'After Meal' },
-        { id: '3', date: '2023-10-21', time: '07:30', value: 105, context: 'Fasting' },
-        { id: '4', date: '2023-10-21', time: '13:30', value: 130, context: 'After Meal' },
-        { id: '5', date: '2023-10-22', time: '07:15', value: 115, context: 'Fasting' },
-        { id: '6', date: '2023-10-22', time: '19:00', value: 155, context: 'After Meal' },
-        { id: '7', date: '2023-10-23', time: '07:00', value: 98, context: 'Fasting' },
-      ];
-      setLogs(dummyData);
-      localStorage.setItem('bloodSugarLogs', JSON.stringify(dummyData));
+  const fetchLogs = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const dbLogs = await getBloodSugarLogs();
+      setLogs(dbLogs);
+    } catch (err: any) {
+      console.error("Failed to fetch logs", err);
+      setError(err.message || "Failed to load blood sugar logs.");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchLogs();
   }, []);
+
+  // Effect to handle AI Advice generation when logs change
+  useEffect(() => {
+    if (isLoading) return; // Wait for initial fetch
+    
+    // Check if the number of logs has changed or we don't have advice yet explicitly
+    if (logs.length > 0 && (logs.length !== prevLogsRef.current || !aiAdvice)) {
+      prevLogsRef.current = logs.length; // Update the ref
+      fetchAiAdvice(logs);
+    } else if (logs.length === 0) {
+      setAiAdvice("No blood sugar data yet. Log your first reading to get personalized advice!");
+    }
+  }, [logs, isLoading]);
+
+  const fetchAiAdvice = async (currentLogs: BloodSugarLog[]) => {
+    setIsAiLoading(true);
+    try {
+      const advice = await generateHealthAdvice(currentLogs);
+      setAiAdvice(advice);
+    } catch (err) {
+      console.error("Failed to generate AI advice", err);
+      setAiAdvice("AI Assistant is currently unavailable.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewLog(prev => ({ ...prev, [name]: name === 'value' ? Number(value) : value }));
   };
 
-  const handleAddLog = (e: React.FormEvent) => {
+  const handleAddLog = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLog.value || !newLog.date || !newLog.time) return;
 
-    const logEntry: BloodSugarLog = {
-      id: Date.now().toString(),
-      date: newLog.date as string,
-      time: newLog.time as string,
-      value: newLog.value as number,
-      context: newLog.context as any,
-      notes: newLog.notes || ''
-    };
+    try {
+      // Use the API to save the log
+      const savedLog = await saveBloodSugarLog({
+        date: newLog.date as string,
+        time: newLog.time as string,
+        value: newLog.value as number,
+        context: newLog.context as any,
+        notes: newLog.notes || ''
+      });
 
-    const updatedLogs = [...logs, logEntry].sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.time}`);
-      const dateB = new Date(`${b.date}T${b.time}`);
-      return dateA.getTime() - dateB.getTime();
-    });
+      // Update the local list and sort
+      const updatedLogs = [...logs, savedLog].sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.time}`);
+        const dateB = new Date(`${b.date}T${b.time}`);
+        return dateB.getTime() - dateA.getTime(); // Sort descending
+      });
 
-    setLogs(updatedLogs);
-    localStorage.setItem('bloodSugarLogs', JSON.stringify(updatedLogs));
+      setLogs(updatedLogs);
 
-    // Reset form but keep date/time current
-    setNewLog({
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-      value: 100,
-      context: 'Fasting',
-      notes: ''
-    });
+      // Reset form but keep date/time current
+      setNewLog({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().slice(0, 5),
+        value: 100,
+        context: 'Fasting',
+        notes: ''
+      });
+    } catch (err: any) {
+      console.error("Failed to save log:", err);
+      alert(err.message || 'Failed to save the new reading. Please try again.');
+    }
   };
 
-  const handleDeleteLog = (id: string) => {
-    const updatedLogs = logs.filter(log => log.id !== id);
-    setLogs(updatedLogs);
-    localStorage.setItem('bloodSugarLogs', JSON.stringify(updatedLogs));
+  const handleDeleteLog = async (id: string | number) => {
+    try {
+      await deleteBloodSugarLog(id);
+      
+      const updatedLogs = logs.filter(log => log.id !== id);
+      setLogs(updatedLogs);
+    } catch (err: any) {
+       console.error("Failed to delete log:", err);
+       alert(err.message || 'Failed to delete reading. Please try again.');
+    }
   };
 
   // Prepare data for the chart
-  const chartData = logs.map(log => ({
+  const chartData = [...logs].reverse().map(log => ({
     ...log,
     dateTime: `${log.date} ${log.time}`,
     displayDate: new Date(`${log.date}T${log.time}`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -105,6 +145,31 @@ const Dashboard: React.FC = () => {
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-gray-900">Health Dashboard</h1>
         <p className="text-gray-500">Track your blood sugar trends over time.</p>
+      </div>
+
+      {/* AI Assistant Card */}
+      <div className="bg-gradient-to-r from-primary-light to-blue-50 p-6 rounded-2xl shadow-sm border border-primary/20">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-white rounded-xl shadow-sm border border-primary/10text-primary shrink-0">
+            <Icons.Doctor />
+          </div>
+          <div className="flex-grow">
+            <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+              AI Health Assistant
+              {isAiLoading && <div className="animate-pulse w-2 h-2 rounded-full bg-primary" />}
+            </h2>
+            <div className="text-gray-700 leading-relaxed">
+              {isAiLoading ? (
+                <div className="space-y-2 animate-pulse mt-1">
+                  <div className="h-4 bg-gray-200/60 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200/60 rounded w-5/6"></div>
+                </div>
+              ) : (
+                <p>{aiAdvice || "Ready to analyze your trends."}</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

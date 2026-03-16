@@ -6,129 +6,6 @@ const ai = new GoogleGenAI({ apiKey });
 
 const modelName = "gemini-3-flash-preview";
 
-export const generateMealPlan = async (userProfile?: UserProfile): Promise<Record<string, Record<string, string>>> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
-
-  let profileContext = "";
-  if (userProfile) {
-    profileContext = `
-      User Profile Context:
-      - Age: ${userProfile.age}
-      - Diabetes Type: ${userProfile.type}
-      - Dietary Preferences: ${userProfile.dietaryPreferences.join(', ') || 'None'}
-      - Allergens: ${userProfile.allergens.join(', ') || 'None'}
-      - Medical Restrictions: ${userProfile.medicalDetails?.restrictions || 'None'}
-      
-      CRITICAL: You MUST strictly adhere to the user's allergens and dietary preferences. Do not include any ingredients they are allergic to.
-    `;
-  }
-
-  const systemInstruction = `
-    You are DiaMenu's core engine, a dual-agent system designed to help Filipino diabetics manage their diet.
-    Generate a 7-day meal plan for a diabetic patient in the Philippines.
-    Include Breakfast, Lunch, Dinner, and Snack for each day (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
-    Focus on low glycemic index, Filipino cuisine, and healthy swaps.
-    ${profileContext}
-    Return ONLY a JSON object where the keys are the days of the week ('Mon', 'Tue', etc.) and the values are objects with keys 'Breakfast', 'Lunch', 'Dinner', 'Snack' and string values representing the meal.
-  `;
-
-  const schema = {
-    type: Type.OBJECT,
-    properties: {
-      Mon: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      },
-      Tue: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      },
-      Wed: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      },
-      Thu: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      },
-      Fri: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      },
-      Sat: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      },
-      Sun: {
-        type: Type.OBJECT,
-        properties: {
-          Breakfast: { type: Type.STRING },
-          Lunch: { type: Type.STRING },
-          Dinner: { type: Type.STRING },
-          Snack: { type: Type.STRING }
-        }
-      }
-    }
-  };
-
-  const textPrompt = `Generate a concise 7-day diabetic-friendly Filipino meal plan. Keep meal descriptions short (e.g., "Oatmeal with Chia Seeds"). Do not include any extra text or explanations.`;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: textPrompt,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        temperature: 0.2,
-      }
-    });
-
-    let text = response.text;
-    if (!text) throw new Error("No response from AI");
-    
-    // Clean up markdown code blocks if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    return JSON.parse(text) as Record<string, Record<string, string>>;
-  } catch (error) {
-    console.error("Gemini Meal Plan Error:", error);
-    throw error;
-  }
-};
 
 export const evaluateWeeklyPlan = async (plan: Record<string, Record<string, string>>): Promise<Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>>> => {
   if (!apiKey) {
@@ -280,5 +157,98 @@ export const auditRecipeWithAI = async (recipeInput: string, userProfile?: UserP
   } catch (error) {
     console.error("Gemini Audit Error:", error);
     throw error;
+  }
+};
+
+export const extractLabResultsFromImage = async (base64Data: string, mimeType: string): Promise<{ hba1c: string, fbs: string, total_cholesterol: string }> => {
+  if (!apiKey) {
+    throw new Error("API Key is missing.");
+  }
+
+  const systemInstruction = `
+    You are a medical data extraction assistant.
+    Extract the following lab results from the provided image:
+    1. HbA1c Level (%)
+    2. Fasting Blood Sugar or Fasting Plasma Glucose (mg/dL)
+    3. Total Cholesterol (mg/dL)
+
+    Return ONLY a valid JSON object. If a value is not found, return an empty string. Only extract the numerical values and units.
+  `;
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      hba1c: { type: Type.STRING, description: "HbA1c Level, e.g., '7.2%'" },
+      fbs: { type: Type.STRING, description: "Fasting Blood Sugar / Fasting Plasma Glucose, e.g., '120 mg/dL'" },
+      total_cholesterol: { type: Type.STRING, description: "Total Cholesterol, e.g., '180 mg/dL'" }
+    }
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: [
+        { inlineData: { data: base64Data, mimeType: mimeType } },
+        { text: "Extract the lab results from this image." }
+      ],
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: schema,
+        temperature: 0.1,
+      }
+    });
+
+    let text = response.text;
+    if (!text) throw new Error("No response from AI");
+    
+    // Clean up markdown code blocks if present
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    return JSON.parse(text) as { hba1c: string, fbs: string, total_cholesterol: string };
+  } catch (error) {
+    console.error("Gemini Extraction Error:", error);
+    throw error;
+  }
+};
+
+export const generateHealthAdvice = async (logs: any[]): Promise<string> => {
+  if (!apiKey) {
+    throw new Error("API Key is missing.");
+  }
+
+  // Take up to the last 10 logs to give the AI context without overloading it
+  const recentLogs = logs.slice(0, 10);
+  
+  if (recentLogs.length === 0) {
+    return "No blood sugar logs available yet. Start logging your readings to receive personalized AI health advice!";
+  }
+
+  const systemInstruction = `
+    You are a supportive, knowledgeable endocrinologist and AI health assistant inside the DiaMenu app.
+    Your goal is to briefly analyze the user's recent blood sugar logs and provide a short, actionable, and encouraging 2-3 sentence piece of advice.
+    Look for trends like consistently high morning fasting sugars, spikes after meals, or dangerous lows.
+    Do NOT give explicit medical prescriptions. Suggest lifestyle or dietary adjustments (like trying more fiber, drinking water, taking a walk after dinner).
+    Keep it friendly, empathetic, and concise. Only return the plain text paragraph. No markdown formatting.
+  `;
+
+  const textPrompt = `Here are the user's most recent blood sugar readings (latest first):\n${JSON.stringify(recentLogs, null, 2)}\n\nPlease provide a short supportive piece of advice based on these trends.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: textPrompt,
+      config: {
+        systemInstruction: systemInstruction,
+        temperature: 0.7,
+      }
+    });
+
+    if (!response.text) return "Keep up the great work tracking your health!";
+    
+    return response.text.trim();
+  } catch (error) {
+    console.error("Gemini Advice Error:", error);
+    return "Unable to generate advice at this moment. Keep tracking your health!";
   }
 };

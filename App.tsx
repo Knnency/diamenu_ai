@@ -79,7 +79,7 @@ const App: React.FC = () => {
         switch (currentView) {
             case ViewState.HOME: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
             case ViewState.AUDITOR: return isAuthenticated ? <Auditor /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-            case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan changeView={setCurrentView} /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.PROFILE: return isAuthenticated ? <Dashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleRegistrationStart} />;

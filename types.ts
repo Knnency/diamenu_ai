@@ -47,7 +47,7 @@ export enum ViewState {
 }
 
 export interface BloodSugarLog {
-  id: string;
+  id: string | number;
   date: string; // ISO string or simple date
   time: string;
   value: number; // mg/dL
