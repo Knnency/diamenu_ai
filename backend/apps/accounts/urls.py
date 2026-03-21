@@ -5,6 +5,7 @@ from .views import (
     PasswordResetRequestView, PasswordResetVerifyOTPView, PasswordResetConfirmView,
     SendRegistrationOTPView, VerifyRegistrationOTPView,
     SavedRecipeListCreateView, SavedRecipeDetailView,
+    MFASetupView, MFAVerifySetupView, MFADisableView, MFALoginVerifyView
 )
 
 urlpatterns = [
@@ -20,5 +21,8 @@ urlpatterns = [
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('saved-recipes/', SavedRecipeListCreateView.as_view(), name='saved-recipes-list-create'),
     path('saved-recipes/<int:pk>/', SavedRecipeDetailView.as_view(), name='saved-recipe-detail'),
+    path('mfa/setup/', MFASetupView.as_view(), name='mfa-setup'),
+    path('mfa/verify-setup/', MFAVerifySetupView.as_view(), name='mfa-verify-setup'),
+    path('mfa/disable/', MFADisableView.as_view(), name='mfa-disable'),
+    path('mfa/login-verify/', MFALoginVerifyView.as_view(), name='mfa-login-verify'),
 ]
-

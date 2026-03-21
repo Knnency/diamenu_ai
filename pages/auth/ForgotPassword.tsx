@@ -31,25 +31,25 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 dark:bg-transparent px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
             <Icons.Leaf />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Reset Password</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Reset Password</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Enter your email address and we'll send you an OTP to reset your password.
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">Email address</label>
+            <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
             <input
               id="email-address" name="email" type="email" autoComplete="email" required
               disabled={!!successMessage}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm disabled:bg-gray-50 disabled:text-gray-400"
+              className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent sm:text-sm disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-500"
               placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -98,7 +98,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }
           <div className="text-center text-sm">
             <button
               onClick={() => changeView(ViewState.LOGIN)}
-              className="font-medium text-primary hover:text-teal-700 flex items-center justify-center w-full"
+              className="font-medium text-primary hover:text-teal-700 dark:text-accent dark:hover:text-lime-300 flex items-center justify-center w-full"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
               Back to Sign in

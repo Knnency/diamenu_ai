@@ -58,16 +58,16 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 dark:bg-transparent px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
             <Icons.Check />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Verify your email
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             We've sent a 6-digit verification code to your email address. Please enter it below to complete your registration.
           </p>
         </div>
@@ -75,7 +75,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Verification Code
               </label>
               <input
@@ -84,7 +84,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
                 type="text"
                 maxLength={6}
                 required
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm text-center tracking-widest font-mono text-lg"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent sm:text-sm text-center tracking-widest font-mono text-lg"
                 placeholder="123456"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} // Only allow digits
@@ -126,12 +126,12 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
         </form>
 
         <div className="text-center text-sm">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Didn't receive the code?{' '}
             <button
               onClick={handleResend}
               disabled={isResending}
-              className="font-medium text-primary hover:text-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-medium text-primary hover:text-teal-700 dark:text-accent dark:hover:text-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isResending ? 'Sending...' : 'Resend Code'}
             </button>
@@ -141,7 +141,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
         <div className="text-center text-sm mt-4">
           <button
             onClick={() => changeView(ViewState.REGISTER)}
-            className="font-medium text-gray-500 hover:text-gray-700 flex items-center justify-center w-full"
+            className="font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center w-full"
           >
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to Sign up

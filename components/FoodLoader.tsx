@@ -18,7 +18,7 @@ const FoodLoader: React.FC<FoodLoaderProps> = ({ status }) => {
     <div className="flex flex-col items-center justify-center p-8 space-y-6">
       <div className="relative w-24 h-24">
         {/* Shadow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-2 bg-gray-200 rounded-[100%] animate-pulse blur-sm"></div>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-[100%] animate-pulse blur-sm"></div>
         
         {/* Bouncing Apple (Simple SVG composition) */}
         <div className="absolute inset-0 animate-bounce-slow flex items-center justify-center">
@@ -33,17 +33,17 @@ const FoodLoader: React.FC<FoodLoaderProps> = ({ status }) => {
       </div>
       
       <div className="text-center">
-        <h3 className="text-xl font-semibold text-primary">{status}</h3>
-        <p className="text-gray-500 text-sm mt-1">Simulating Agents{dots}</p>
+        <h3 className="text-xl font-semibold text-primary dark:text-accent">{status}</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Simulating Agents{dots}</p>
       </div>
       
       {/* Agent Indicators */}
       <div className="flex space-x-4 mt-4">
-        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full border ${status.includes('Doctor') ? 'bg-blue-50 border-blue-200 animate-pulse' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
-            <span className="text-xs font-bold text-blue-600">DR. AGENT</span>
+        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full border ${status.includes('Doctor') ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-900/50 animate-pulse' : 'bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 opacity-50'}`}>
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">DR. AGENT</span>
         </div>
-        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full border ${status.includes('Chef') ? 'bg-orange-50 border-orange-200 animate-pulse' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
-            <span className="text-xs font-bold text-orange-600">CHEF AGENT</span>
+        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full border ${status.includes('Chef') ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-900/50 animate-pulse' : 'bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 opacity-50'}`}>
+            <span className="text-xs font-bold text-orange-600 dark:text-orange-400">CHEF AGENT</span>
         </div>
       </div>
     </div>

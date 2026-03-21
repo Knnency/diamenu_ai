@@ -4,6 +4,7 @@ import { BloodSugarLog } from '../types';
 import { getBloodSugarLogs, saveBloodSugarLog, deleteBloodSugarLog } from '../services/bloodSugarService';
 import { generateHealthAdvice } from '../services/geminiService';
 import { Icons } from '../constants';
+import { toast } from 'sonner';
 
 const Dashboard: React.FC = () => {
   const [logs, setLogs] = useState<BloodSugarLog[]>([]);
@@ -104,7 +105,7 @@ const Dashboard: React.FC = () => {
       });
     } catch (err: any) {
       console.error("Failed to save log:", err);
-      alert(err.message || 'Failed to save the new reading. Please try again.');
+      toast.error(err.message || 'Failed to save the new reading. Please try again.');
     }
   };
 
@@ -116,7 +117,7 @@ const Dashboard: React.FC = () => {
       setLogs(updatedLogs);
     } catch (err: any) {
        console.error("Failed to delete log:", err);
-       alert(err.message || 'Failed to delete reading. Please try again.');
+       toast.error(err.message || 'Failed to delete reading. Please try again.');
     }
   };
 
@@ -129,40 +130,40 @@ const Dashboard: React.FC = () => {
 
   const getStatusColor = (value: number, context: string) => {
     if (context === 'Fasting' || context === 'Before Meal') {
-      if (value < 70) return 'text-red-600'; // Hypo
-      if (value <= 130) return 'text-green-600'; // Target
-      return 'text-yellow-600'; // High
+      if (value < 70) return 'text-red-600 dark:text-red-400'; // Hypo
+      if (value <= 130) return 'text-green-600 dark:text-green-400'; // Target
+      return 'text-yellow-600 dark:text-yellow-400'; // High
     } else {
       // After Meal or Bedtime
-      if (value < 70) return 'text-red-600'; // Hypo
-      if (value <= 180) return 'text-green-600'; // Target
-      return 'text-yellow-600'; // High
+      if (value < 70) return 'text-red-600 dark:text-red-400'; // Hypo
+      if (value <= 180) return 'text-green-600 dark:text-green-400'; // Target
+      return 'text-yellow-600 dark:text-yellow-400'; // High
     }
   };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Health Dashboard</h1>
-        <p className="text-gray-500">Track your blood sugar trends over time.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Health Dashboard</h1>
+        <p className="text-gray-500 dark:text-gray-400">Track your blood sugar trends over time.</p>
       </div>
 
       {/* AI Assistant Card */}
-      <div className="bg-gradient-to-r from-primary-light to-blue-50 p-6 rounded-2xl shadow-sm border border-primary/20">
+      <div className="bg-gradient-to-r from-primary-light dark:from-primary/20 to-blue-50 dark:to-gray-800 p-6 rounded-2xl shadow-sm border border-primary/20 dark:border-primary/30">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-white rounded-xl shadow-sm border border-primary/10text-primary shrink-0">
+          <div className="p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary/10 text-primary dark:text-accent shrink-0">
             <Icons.Doctor />
           </div>
           <div className="flex-grow">
-            <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
               AI Health Assistant
               {isAiLoading && <div className="animate-pulse w-2 h-2 rounded-full bg-primary" />}
             </h2>
-            <div className="text-gray-700 leading-relaxed">
+            <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
               {isAiLoading ? (
                 <div className="space-y-2 animate-pulse mt-1">
-                  <div className="h-4 bg-gray-200/60 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200/60 rounded w-5/6"></div>
+                  <div className="h-4 bg-gray-200/60 dark:bg-gray-700/60 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200/60 dark:bg-gray-700/60 rounded w-5/6"></div>
                 </div>
               ) : (
                 <p>{aiAdvice || "Ready to analyze your trends."}</p>
@@ -174,8 +175,8 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Chart Section */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Blood Sugar Trends</h2>
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Blood Sugar Trends</h2>
           
           {logs.length > 0 ? (
             <div className="h-80 w-full">
@@ -216,44 +217,44 @@ const Dashboard: React.FC = () => {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-80 flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-              <p className="text-gray-500">No data logged yet. Add a reading to see your trends.</p>
+            <div className="h-80 flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-600">
+              <p className="text-gray-500 dark:text-gray-400">No data logged yet. Add a reading to see your trends.</p>
             </div>
           )}
         </div>
 
         {/* Log Form Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Log Reading</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Log Reading</h2>
           
           <form onSubmit={handleAddLog} className="space-y-4 flex-grow">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
                 <input
                   type="date"
                   name="date"
                   value={newLog.date}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:ring-1 focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time</label>
                 <input
                   type="time"
                   name="time"
                   value={newLog.time}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:ring-1 focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Blood Sugar (mg/dL)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Blood Sugar (mg/dL)</label>
               <div className="relative">
                 <input
                   type="number"
@@ -262,22 +263,22 @@ const Dashboard: React.FC = () => {
                   onChange={handleInputChange}
                   min="20"
                   max="600"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm text-lg font-semibold"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:ring-1 focus:ring-primary sm:text-sm text-lg font-semibold"
                   required
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">mg/dL</span>
+                  <span className="text-gray-500 dark:text-gray-400 sm:text-sm">mg/dL</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Context</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Context</label>
               <select
                 name="context"
                 value={newLog.context}
                 onChange={handleInputChange}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:ring-1 focus:ring-primary sm:text-sm"
               >
                 <option value="Fasting">Fasting (Waking up)</option>
                 <option value="Before Meal">Before Meal</option>
@@ -287,14 +288,14 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
               <input
                 type="text"
                 name="notes"
                 value={newLog.notes}
                 onChange={handleInputChange}
                 placeholder="e.g., Felt dizzy, ate cake"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:ring-1 focus:ring-primary sm:text-sm"
               />
             </div>
 
@@ -312,23 +313,23 @@ const Dashboard: React.FC = () => {
 
       {/* History Table */}
       {logs.length > 0 && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Logs</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Logs</h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reading</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Context</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reading</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Context</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Notes</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {[...logs].reverse().map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {new Date(`${log.date}T${log.time}`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {log.time}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -336,16 +337,16 @@ const Dashboard: React.FC = () => {
                         {log.value} mg/dL
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {log.context}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
                       {log.notes || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
                         onClick={() => handleDeleteLog(log.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 dark:text-red-500 hover:text-red-900 dark:hover:text-red-400"
                       >
                         Delete
                       </button>

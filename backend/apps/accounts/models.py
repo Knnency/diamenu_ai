@@ -28,6 +28,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
+    # MFA Fields
+    mfa_secret = models.CharField(max_length=32, blank=True, null=True)
+    mfa_enabled = models.BooleanField(default=False)
+
+    # Profile integration
+    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'

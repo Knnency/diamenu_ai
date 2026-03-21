@@ -3,6 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { ViewState } from '../../types';
 import { Icons } from '../../constants';
 import { loginWithEmail, loginWithGoogle } from '../../services/authService';
+import MfaLoginModal from './MfaLoginModal';
 
 interface LoginProps {
   changeView: (view: ViewState) => void;
@@ -14,14 +15,21 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mfaToken, setMfaToken] = useState('');
+  const [showMfaModal, setShowMfaModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     try {
-      const user = await loginWithEmail(email, password);
-      onLogin(user);
+      const result: any = await loginWithEmail(email, password);
+      if (result.mfa_required) {
+        setMfaToken(result.mfa_token);
+        setShowMfaModal(true);
+      } else {
+        onLogin(result.user);
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed.');
     } finally {
@@ -43,14 +51,14 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 dark:bg-transparent px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
             <Icons.Leaf />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Welcome back</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Welcome back</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Sign in to access your personalized meal plans and audits.
           </p>
         </div>
@@ -58,24 +66,24 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">Email address</label>
+              <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
               <input
                 id="email-address" name="email" type="email" autoComplete="email" required
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent sm:text-sm"
                 placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
                 <button type="button" onClick={() => changeView(ViewState.FORGOT_PASSWORD)}
-                  className="text-sm font-medium text-primary hover:text-teal-700">
+                  className="text-sm font-medium text-primary hover:text-teal-700 dark:text-accent dark:hover:text-lime-300">
                   Forgot your password?
                 </button>
               </div>
               <input
                 id="password" name="password" type="password" autoComplete="current-password" required
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-primary dark:focus:border-accent focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent sm:text-sm"
                 placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
               />
             </div>
@@ -100,9 +108,9 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
         </form>
 
         <div className="relative">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300"></div></div>
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300 dark:border-gray-600"></div></div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
           </div>
         </div>
 
@@ -118,14 +126,24 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
         </div>
 
         <div className="text-center text-sm">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
-            <button onClick={() => changeView(ViewState.REGISTER)} className="font-medium text-primary hover:text-teal-700">
+            <button onClick={() => changeView(ViewState.REGISTER)} className="font-medium text-primary hover:text-teal-700 dark:text-accent dark:hover:text-lime-300">
               Sign up for free
             </button>
           </p>
         </div>
       </div>
+      
+      <MfaLoginModal
+        isOpen={showMfaModal}
+        mfaToken={mfaToken}
+        onCancel={() => setShowMfaModal(false)}
+        onSuccess={(user) => {
+          setShowMfaModal(false);
+          onLogin(user);
+        }}
+      />
     </div>
   );
 };

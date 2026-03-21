@@ -4,6 +4,7 @@ import { SavedRecipe, getSavedRecipes, deleteSavedRecipe } from '../services/aut
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
 import { recipeImageService } from '../services/RecipeImageService';
 import RecipePreviewModal from '../components/RecipePreviewModal';
+import { toast } from 'sonner';
 
 interface RecipeWithImage extends SavedRecipe {
   imageUrl: string;
@@ -85,7 +86,7 @@ const SavedRecipes: React.FC = () => {
       setRecipes(prev => prev.filter(recipe => recipe.id !== recipeId));
     } catch (err) {
       console.error('Failed to delete recipe:', err);
-      alert('Failed to delete recipe. Please try again.');
+      toast.error('Failed to delete recipe. Please try again.');
     } finally {
       setDeletingId(null);
     }
@@ -145,22 +146,22 @@ const SavedRecipes: React.FC = () => {
     return (
       <div className="max-w-5xl mx-auto">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-96 mb-8"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-96 mb-8"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="h-48 bg-gray-200"></div>
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className="h-48 bg-gray-200 dark:bg-gray-700"></div>
                 <div className="p-5">
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
                   <div className="flex gap-2 mb-4">
-                    <div className="h-6 bg-gray-200 rounded w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                   </div>
                   <div className="flex justify-between">
-                    <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
                   </div>
                 </div>
               </div>
@@ -174,12 +175,12 @@ const SavedRecipes: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-5xl mx-auto">
-        <div className="text-center py-16 bg-red-50 rounded-2xl border border-red-100">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+        <div className="text-center py-16 bg-red-50 dark:bg-red-900/30 rounded-2xl border border-red-100 dark:border-red-800">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
             <Icons.Alert />
           </div>
-          <h3 className="text-lg font-bold text-red-900 mb-2">Failed to Load Recipes</h3>
-          <p className="text-red-700 mb-4">{error}</p>
+          <h3 className="text-lg font-bold text-red-900 dark:text-red-200 mb-2">Failed to Load Recipes</h3>
+          <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
           <button 
             onClick={loadSavedRecipes}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -236,7 +237,7 @@ const SavedRecipes: React.FC = () => {
       
       // Close and show success
       closeMealModal();
-      alert(`Successfully added "${selectedRecipe.title}" to ${selectedDay} ${selectedMealType}!`);
+      toast.success(`Successfully added "${selectedRecipe.title}" to ${selectedDay} ${selectedMealType}!`);
       
     } catch (err: any) {
        console.error("Failed to add recipe to meal plan", err);
@@ -252,18 +253,18 @@ const SavedRecipes: React.FC = () => {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Saved Recipes</h1>
-            <p className="text-gray-600">Your personal collection of diabetes-friendly meals.</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Saved Recipes</h1>
+            <p className="text-gray-600 dark:text-gray-400">Your personal collection of diabetes-friendly meals.</p>
           </div>
           {totalRecipes > 0 && (
             <div className="flex gap-4 mt-4 sm:mt-0">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">{totalRecipes}</div>
-                <div className="text-sm text-gray-500">Recipes</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Recipes</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600">{avgSafetyScore}%</div>
-                <div className="text-sm text-gray-500">Avg Score</div>
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{avgSafetyScore}%</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Avg Score</div>
               </div>
             </div>
           )}
@@ -271,7 +272,7 @@ const SavedRecipes: React.FC = () => {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row gap-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,12 +284,12 @@ const SavedRecipes: React.FC = () => {
             placeholder="Search saved recipes, tags, or dietary options..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
           />
         </div>
         <button 
           onClick={() => setSearchQuery('')}
-          className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 font-medium"
+          className="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2 font-medium"
         >
           <Icons.Refresh />
           Clear
@@ -299,9 +300,9 @@ const SavedRecipes: React.FC = () => {
       {filteredRecipes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRecipes.map(recipe => (
-            <div key={recipe.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
+            <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow group">
               {/* Recipe Image */}
-              <div className="relative h-48 bg-gray-100">
+              <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
                 {recipe.isImageLoading ? (
                   <div className="w-full h-full flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -313,7 +314,7 @@ const SavedRecipes: React.FC = () => {
                       <p className="text-sm">Image not available</p>
                       <button 
                         onClick={() => handleRetryImage(recipe)}
-                        className="mt-2 text-xs text-primary hover:text-teal-700"
+                        className="mt-2 text-xs text-primary dark:text-accent hover:text-teal-700 dark:hover:text-lime-300"
                       >
                         Retry
                       </button>
@@ -333,7 +334,7 @@ const SavedRecipes: React.FC = () => {
                 <button 
                   onClick={() => handleDeleteRecipe(recipe.id)}
                   disabled={deletingId === recipe.id}
-                  className="absolute top-3 left-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white shadow-sm transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                  className="absolute top-3 left-3 w-8 h-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-400 dark:text-gray-300 hover:text-red-500 hover:bg-white dark:hover:bg-gray-700 shadow-sm transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
                   title="Remove from saved"
                 >
                   {deletingId === recipe.id ? (
@@ -346,35 +347,35 @@ const SavedRecipes: React.FC = () => {
                 </button>
 
                 {/* Recipe Stats */}
-                <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-medium text-gray-700 shadow-sm">
+                <div className="absolute bottom-3 left-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 shadow-sm">
                   {recipe.tags.length} tags
                 </div>
-                <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-medium text-emerald-700 shadow-sm">
+                <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-medium text-emerald-700 dark:text-emerald-400 shadow-sm">
                   {recipe.ingredients?.length || 0} ingredients
                 </div>
               </div>
 
               {/* Recipe Content */}
               <div className="p-5">
-                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{recipe.title}</h3>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{recipe.description}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{recipe.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">{recipe.description}</p>
                 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {recipe.tags.slice(0, 3).map(tag => (
-                    <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">
+                    <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-md">
                       {tag}
                     </span>
                   ))}
                   {recipe.tags.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-md">
                       +{recipe.tags.length - 3}
                     </span>
                   )}
                 </div>
 
                 {/* Recipe Details */}
-                <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-4">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1" title="Servings">
                       <Icons.User className="w-4 h-4" />
@@ -385,17 +386,17 @@ const SavedRecipes: React.FC = () => {
                       {recipe.country}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-400" title="Created date">
+                  <div className="text-xs text-gray-400 dark:text-gray-500" title="Created date">
                     {new Date(recipe.created_at).toLocaleDateString()}
                   </div>
                 </div>
 
                 {/* Dietary Options */}
                 {recipe.dietary_options.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex flex-wrap gap-1">
                       {recipe.dietary_options.slice(0, 2).map(option => (
-                        <span key={option} className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded">
+                        <span key={option} className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium rounded">
                           {option}
                         </span>
                       ))}
@@ -407,14 +408,14 @@ const SavedRecipes: React.FC = () => {
                 <div className="mt-4 flex gap-2">
                   <button 
                     onClick={() => handlePreviewRecipe(recipe)}
-                    className="flex-1 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
+                    className="flex-1 px-4 py-2 border border-primary dark:border-accent text-primary dark:text-accent rounded-lg hover:bg-primary dark:hover:bg-accent hover:text-white dark:hover:text-gray-900 transition-colors font-medium"
                     title="Preview recipe details"
                   >
                     Preview
                   </button>
                   <button 
                     onClick={() => handleOpenModal(recipe)}
-                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+                    className="flex-1 px-4 py-2 bg-primary dark:bg-accent text-white dark:text-gray-900 rounded-lg hover:bg-teal-700 dark:hover:bg-lime-400 transition-colors font-medium"
                     title="Add to meal plan"
                   >
                     Add to Meal
@@ -425,14 +426,14 @@ const SavedRecipes: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-gray-500">
             <Icons.Bookmark className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
             {searchQuery ? "No recipes found" : "No saved recipes yet"}
           </h3>
-          <p className="text-gray-500 max-w-sm mx-auto mb-4">
+          <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
             {searchQuery 
               ? "We couldn't find any saved recipes matching your search. Try different keywords."
               : "You haven't saved any recipes yet. Start auditing recipes in the Auditor to build your collection!"
@@ -441,7 +442,7 @@ const SavedRecipes: React.FC = () => {
           {searchQuery && (
             <button 
               onClick={() => setSearchQuery('')}
-              className="text-primary font-medium hover:text-teal-700"
+              className="text-primary dark:text-accent font-medium hover:text-teal-700 dark:hover:text-lime-300"
             >
               Clear search
             </button>
@@ -452,24 +453,24 @@ const SavedRecipes: React.FC = () => {
       {/* Add to Meal Modal */}
       {isModalOpen && selectedRecipe && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-xl">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full shadow-xl">
              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Add to Meal Plan</h3>
-                <p className="text-sm text-gray-600 mb-6">Select when you want to eat <span className="font-semibold">{selectedRecipe.title}</span>.</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Add to Meal Plan</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">Select when you want to eat <span className="font-semibold">{selectedRecipe.title}</span>.</p>
                 
                 {addingRecipeError && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-100">
+                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm border border-red-100 dark:border-red-800">
                     {addingRecipeError}
                   </div>
                 )}
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Day of Week</label>
                     <select 
                       value={selectedDay}
                       onChange={(e) => setSelectedDay(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-primary dark:focus:border-accent outline-none"
                     >
                       {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                         <option key={day} value={day}>{day}</option>
@@ -478,11 +479,11 @@ const SavedRecipes: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Meal Time</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Meal Time</label>
                     <select 
                       value={selectedMealType}
                       onChange={(e) => setSelectedMealType(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-primary dark:focus:border-accent outline-none"
                     >
                       {['Breakfast', 'Lunch', 'Dinner', 'Snack'].map(meal => (
                         <option key={meal} value={meal}>{meal}</option>
@@ -492,18 +493,18 @@ const SavedRecipes: React.FC = () => {
                 </div>
              </div>
              
-             <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3 rounded-b-2xl">
+             <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 flex gap-3 rounded-b-2xl">
                <button 
                  onClick={closeMealModal}
                  disabled={isAddingRecipe}
-                 className="flex-1 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors"
+                 className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors"
                >
                  Cancel
                </button>
                <button 
                  onClick={handleConfirmAddToMeal}
                  disabled={isAddingRecipe}
-                 className="flex-1 px-4 py-2 bg-primary text-white rounded-xl hover:bg-teal-700 font-medium transition-colors flex justify-center items-center shadow-sm"
+                 className="flex-1 px-4 py-2 bg-primary dark:bg-accent text-white dark:text-gray-900 rounded-xl hover:bg-teal-700 dark:hover:bg-lime-400 font-medium transition-colors flex justify-center items-center shadow-sm"
                >
                  {isAddingRecipe ? (
                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

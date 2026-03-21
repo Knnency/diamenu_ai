@@ -91,8 +91,12 @@ USE_I18N = True
 USE_TZ = True
 
 # --- Static files ---
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# --- Media files (Uploads) ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -125,11 +129,17 @@ else:
     ]
 CORS_ALLOW_CREDENTIALS = True
 
-# --- Email (Resend SMTP) ---
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.resend.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'resend'                                  # Always the literal string "resend"
-EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY', '')  # Your Resend API key
+# --- Email Settings ---
+if DEBUG:
+    # Use console backend for local development to bypass Resend restrictions
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # Use Resend SMTP for production
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.resend.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'resend'                                  # Always the literal string "resend"
+    EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY', '')  # Your Resend API key
+
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'DiaMenu <onboarding@resend.dev>')

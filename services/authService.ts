@@ -22,16 +22,21 @@ export const logout = () => {
 const apiFetch = async (path: string, options: RequestInit = {}) => {
   const token = getAccessToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+  
+  // Only set application/json if it's not FormData
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   return res;
 };
 
 // Safely parse JSON — avoids crash when server returns an HTML error page
-const safeJson = async (res: Response) => {
+export const safeJson = async (res: Response) => {
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
     throw new Error(`Server error (${res.status}): The backend returned an unexpected response. Make sure the Django server is running.`);
@@ -48,8 +53,13 @@ export const loginWithEmail = async (email: string, password: string) => {
   });
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Login failed. Check your email and password.');
+  
+  if (data.mfa_required) {
+    return data; // Return { mfa_required: true, mfa_token: string }
+  }
+  
   storeTokens(data.access, data.refresh, data.user);
-  return data.user;
+  return { user: data.user };
 };
 
 export const registerWithEmail = async (name: string, email: string, password: string) => {
@@ -204,6 +214,8 @@ export const deleteSavedRecipe = async (recipeId: number): Promise<void> => {
 
 // --- User Profile Settings API calls ---
 export interface UserSettings {
+  email?: string;
+  name?: string;
   age: number | null;
   diabetes_type: string;
   dietary_preferences: string[];
@@ -214,6 +226,8 @@ export interface UserSettings {
   total_cholesterol: string;
   medications: string;
   restrictions: string;
+  mfa_enabled?: boolean;
+  profile_picture?: string;
 }
 
 export const getUserSettings = async (): Promise<UserSettings> => {
@@ -222,7 +236,7 @@ export const getUserSettings = async (): Promise<UserSettings> => {
   });
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Failed to fetch user settings.');
-  return data.profile;
+  return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
 };
 
 export const updateUserSettings = async (settings: UserSettings): Promise<UserSettings> => {
@@ -232,7 +246,24 @@ export const updateUserSettings = async (settings: UserSettings): Promise<UserSe
   });
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Failed to update user settings.');
-  return data.profile || data;
+  return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
+};
+
+export const updateUserProfilePicture = async (file: File | null): Promise<UserSettings> => {
+  const formData = new FormData();
+  if (file) {
+    formData.append('profile_picture', file);
+  } else {
+    formData.append('profile_picture', ''); // To clear it
+  }
+  
+  const res = await apiFetch('/api/auth/profile/', {
+    method: 'PUT',
+    body: formData,
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to update profile picture.');
+  return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
 };
 
 export default apiFetch;
