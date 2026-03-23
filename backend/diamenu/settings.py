@@ -149,4 +149,4 @@ else:
     EMAIL_HOST_USER = 'resend'                                  # Always the literal string "resend"
     EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY', '')  # Your Resend API key
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'DiaMenu <onboarding@resend.dev>')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'DiaMenu <noreply@diamenu.online>')
