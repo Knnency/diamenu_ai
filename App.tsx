@@ -10,6 +10,8 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Settings from './pages/Settings';
 import SavedRecipes from './pages/SavedRecipes';
+import Pantry from './pages/Pantry';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import OnboardingModal from './components/OnboardingModal';
 import { ViewState } from './types';
 import { APP_NAME, Icons } from './constants';
@@ -22,9 +24,17 @@ const App: React.FC = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(!!storedUser);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-    const [user, setUser] = useState<{ name?: string; email?: string } | null>(storedUser);
+    const [user, setUser] = useState<{ name?: string; email?: string; is_superuser?: boolean } | null>(storedUser);
     const [resetEmail, setResetEmail] = useState('');
     const [pendingRegistration, setPendingRegistration] = useState<{ name: string; email: string; password: string } | null>(null);
+
+    const isAuthView = [
+        ViewState.LOGIN,
+        ViewState.REGISTER,
+        ViewState.VERIFY_OTP,
+        ViewState.FORGOT_PASSWORD,
+        ViewState.RESET_PASSWORD
+    ].includes(currentView);
 
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedMode = localStorage.getItem('theme');
@@ -42,7 +52,7 @@ const App: React.FC = () => {
     }, [isDarkMode]);
 
     const handleLogin = (userData: object) => {
-        setUser(userData as { name?: string; email?: string });
+        setUser(userData as { name?: string; email?: string; is_superuser?: boolean });
         setIsAuthenticated(true);
         setCurrentView(ViewState.AUDITOR);
     };
@@ -110,6 +120,8 @@ const App: React.FC = () => {
             case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} email={resetEmail} />;
             case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.SAVED_RECIPES: return isAuthenticated ? <SavedRecipes /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.PANTRY: return isAuthenticated ? <Pantry /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.ADMIN_DASHBOARD: return (isAuthenticated && user?.is_superuser) ? <AdminDashboard /> : <Home changeView={setCurrentView} />;
             default: return isAuthenticated ? <Auditor /> : <Home changeView={setCurrentView} />;
         }
     };
@@ -127,8 +139,9 @@ const App: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300">
+        <div className="min-h-screen bg-slate-50 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-slate-900 dark:bg-none font-sans text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300">
             {/* Navigation */}
+            {!isAuthView && (
             <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
@@ -149,6 +162,10 @@ const App: React.FC = () => {
                                     <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
                                     <NavItem view={ViewState.SAVED_RECIPES} label="Saved" icon={<Icons.Bookmark />} />
                                     <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
+                                    <NavItem view={ViewState.PANTRY} label="Pantry" icon={<Icons.Leaf />} />
+                                    {user?.is_superuser && (
+                                        <NavItem view={ViewState.ADMIN_DASHBOARD} label="Admin" icon={<Icons.Shield />} />
+                                    )}
                                     <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
                                     <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2 self-center"></div>
                                 </>
@@ -206,6 +223,10 @@ const App: React.FC = () => {
                                 <NavItem view={ViewState.AUDITOR} label="Recipe Auditor" icon={<Icons.Check />} />
                                 <NavItem view={ViewState.SAVED_RECIPES} label="Saved" icon={<Icons.Bookmark />} />
                                 <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
+                                <NavItem view={ViewState.PANTRY} label="Pantry" icon={<Icons.Leaf />} />
+                                {user?.is_superuser && (
+                                    <NavItem view={ViewState.ADMIN_DASHBOARD} label="Admin" icon={<Icons.Shield />} />
+                                )}
                                 <NavItem view={ViewState.SETTINGS} label="Settings" icon={<Icons.User />} />
                             </>
                         )}
@@ -230,13 +251,24 @@ const App: React.FC = () => {
                     </div>
                 )}
             </nav>
+            )}
 
             {/* Main Content */}
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className={isAuthView ? "flex-1 w-full relative" : "flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
+                {isAuthView && (
+                    <button 
+                        onClick={() => setCurrentView(ViewState.HOME)}
+                        className="absolute top-6 left-6 lg:left-8 z-[60] flex items-center space-x-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        <span className="font-medium text-sm">Back</span>
+                    </button>
+                )}
                 {renderView()}
             </main>
 
             {/* Footer */}
+            {!isAuthView && (
             <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-12 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 text-center">
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -245,6 +277,7 @@ const App: React.FC = () => {
                     </p>
                 </div>
             </footer>
+            )}
 
             {/* Logout Confirmation Modal */}
             {isLogoutModalOpen && (

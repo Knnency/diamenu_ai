@@ -293,7 +293,7 @@ const Auditor: React.FC = () => {
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-6 animate-fade-in-up relative">
       {/* Left Panel: Chat Interface */}
-      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Header & Tags */}
         <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
           <div className="flex justify-between items-center mb-4">
@@ -402,7 +402,7 @@ const Auditor: React.FC = () => {
       </div>
 
       {/* Right Panel: Recipe Ideas */}
-      <div className="w-full lg:w-96 flex flex-col min-h-0 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="w-full lg:w-96 flex flex-col min-h-0 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Icons.Leaf /> Recipe Ideas
@@ -420,7 +420,7 @@ const Auditor: React.FC = () => {
             </div>
           ) : (
             recipeIdeas.map((recipe, index) => (
-              <div key={recipe.id || `recipe-${index}`} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-primary/50 dark:hover:border-accent/50 transition-colors bg-white dark:bg-gray-800 shadow-sm">
+              <div key={recipe.id || `recipe-${index}`} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-primary/50 dark:hover:border-accent/50 transition-colors bg-white dark:bg-gray-800 shadow-md">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-2">{recipe.title}</h3>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {recipe.tags.map((tag, idx) => (
@@ -474,7 +474,7 @@ const Auditor: React.FC = () => {
       {/* Settings Modal Overlay */}
       {uiState.isSettingsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recipe Settings</h2>
@@ -644,7 +644,7 @@ const Auditor: React.FC = () => {
       {/* Add Ingredient Modal Overlay */}
       {uiState.isAddIngredientOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-700">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add Ingredient to Avoid</h2>
               <button

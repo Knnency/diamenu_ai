@@ -326,7 +326,7 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
             }
 
             return (
-                <div key={type} className={`p-6 rounded-2xl shadow-sm border ${statusBorder} ${statusBg} flex flex-col justify-between min-h-[10rem] hover:border-primary dark:hover:border-accent transition-colors group relative`}>
+                <div key={type} className={`p-6 rounded-2xl shadow-md border ${statusBorder} ${statusBg} flex flex-col justify-between min-h-[10rem] hover:border-primary dark:hover:border-accent transition-colors group relative`}>
                     <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase text-gray-400 dark:text-gray-500 tracking-wider">{type}</span>
                         {isPlanned && !isEditing && (

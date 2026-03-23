@@ -5,7 +5,8 @@ from .views import (
     PasswordResetRequestView, PasswordResetVerifyOTPView, PasswordResetConfirmView,
     SendRegistrationOTPView, VerifyRegistrationOTPView,
     SavedRecipeListCreateView, SavedRecipeDetailView,
-    MFASetupView, MFAVerifySetupView, MFADisableView, MFALoginVerifyView
+    MFASetupView, MFAVerifySetupView, MFADisableView, MFALoginVerifyView,
+    AdminUserListCreateView, AdminUserDetailView
 )
 
 urlpatterns = [
@@ -25,4 +26,8 @@ urlpatterns = [
     path('mfa/verify-setup/', MFAVerifySetupView.as_view(), name='mfa-verify-setup'),
     path('mfa/disable/', MFADisableView.as_view(), name='mfa-disable'),
     path('mfa/login-verify/', MFALoginVerifyView.as_view(), name='mfa-login-verify'),
+    
+    # Admin endpoints
+    path('admin/users/', AdminUserListCreateView.as_view(), name='admin-user-list'),
+    path('admin/users/<int:pk>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
 ]

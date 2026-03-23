@@ -31,7 +31,48 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
   }
   
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  
+  // Handle Token Refresh on 401 Unauthorized
+  if (res.status === 401 && path !== '/api/auth/token/refresh/' && path !== '/api/auth/login/' && path !== '/api/auth/register/') {
+    const refresh = getRefreshToken();
+    if (refresh) {
+      try {
+        const refreshRes = await fetch(`${API_BASE}/api/auth/token/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh }),
+        });
+        
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          const newAccess = refreshData.access;
+          const newRefresh = refreshData.refresh || refresh;
+          const user = getStoredUser();
+          
+          if (newAccess && user) {
+             storeTokens(newAccess, newRefresh, user);
+             headers['Authorization'] = `Bearer ${newAccess}`;
+             // Retry original request
+             res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+          } else {
+             logout();
+             window.location.href = '/login';
+          }
+        } else {
+          logout();
+          window.location.href = '/login';
+        }
+      } catch (err) {
+        logout();
+        window.location.href = '/login';
+      }
+    } else {
+      logout();
+      window.location.href = '/login';
+    }
+  }
+
   return res;
 };
 

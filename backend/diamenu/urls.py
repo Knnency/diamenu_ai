@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/bloodsugar/', include('apps.bloodsugar.urls')),
     path('api/auditor/', include('apps.auditor.urls')),
     path('api/mealplan/', include('apps.mealplan.urls')),
+    path('api/pantry/', include('apps.pantry.urls')),
 ]
 
 if settings.DEBUG:

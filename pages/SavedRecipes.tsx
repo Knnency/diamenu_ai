@@ -272,7 +272,7 @@ const SavedRecipes: React.FC = () => {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 flex flex-col sm:flex-row gap-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 mb-8 flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -300,7 +300,7 @@ const SavedRecipes: React.FC = () => {
       {filteredRecipes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRecipes.map(recipe => (
-            <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow group">
+            <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow group">
               {/* Recipe Image */}
               <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
                 {recipe.isImageLoading ? (
@@ -426,7 +426,7 @@ const SavedRecipes: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
           <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-gray-500">
             <Icons.Bookmark className="w-8 h-8" />
           </div>
@@ -453,7 +453,7 @@ const SavedRecipes: React.FC = () => {
       {/* Add to Meal Modal */}
       {isModalOpen && selectedRecipe && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full shadow-xl">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full shadow-2xl">
              <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Add to Meal Plan</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">Select when you want to eat <span className="font-semibold">{selectedRecipe.title}</span>.</p>

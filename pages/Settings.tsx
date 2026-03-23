@@ -104,7 +104,7 @@ const Settings: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-min">
         
         {/* User Profile Card (Spans 1 Column) */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <button 
             onClick={() => setShowProfileModal(true)}
             className="absolute top-4 right-4 text-gray-400 hover:text-primary transition-colors focus:outline-none bg-gray-50 dark:bg-gray-700 p-2 rounded-full"
@@ -138,7 +138,7 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Medical Info Card (Spans 2 Columns) */}
-        <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 relative">
+        <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-200 dark:border-gray-700 p-6 relative">
           <button 
             onClick={() => setShowMedicalModal(true)}
             className="absolute top-6 right-6 text-gray-400 hover:text-primary transition-colors focus:outline-none bg-gray-50 dark:bg-gray-700 p-2 rounded-full"
@@ -183,7 +183,7 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Dietary Preferences Card */}
-        <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 relative">
+        <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-200 dark:border-gray-700 p-6 relative">
           <button 
             onClick={() => setShowPrefModal(true)}
             className="absolute top-6 right-6 text-gray-400 hover:text-primary transition-colors focus:outline-none bg-gray-50 dark:bg-gray-700 p-2 rounded-full"
@@ -230,7 +230,7 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Security Settings Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-200 dark:border-gray-700 p-6 flex flex-col">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Icons.Shield className="w-5 h-5 text-blue-500" /> Security
           </h3>

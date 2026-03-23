@@ -22,9 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.md 
 
 # Environment Variables
 .env
 *.env
 .env.*
 !.env.example
+
+
+
+#agents ai
+.agent
+

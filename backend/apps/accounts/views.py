@@ -1,7 +1,7 @@
 import os
 from rest_framework import status, generics
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 import google.oauth2.id_token
@@ -15,7 +15,9 @@ from io import BytesIO
 from django.conf import settings
 from django.db import transaction
 from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP, SavedRecipe
-from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer
+from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer, AdminUserSerializer
+from .tokens import MFAToken, PasswordResetToken
+from rest_framework.throttling import AnonRateThrottle
 
 
 class RegisterView(generics.CreateAPIView):
@@ -60,8 +62,8 @@ class LoginView(TokenObtainPairView):
         user = serializer.user
         if getattr(user, 'mfa_enabled', False):
             # Generate a short-lived token for MFA verification step
-            refresh = RefreshToken.for_user(user)
-            mfa_token = str(refresh.access_token)
+            mfa_token_obj = MFAToken.for_user(user)
+            mfa_token = str(mfa_token_obj)
             return Response({
                 'mfa_required': True,
                 'mfa_token': mfa_token,
@@ -206,6 +208,7 @@ class PasswordResetRequestView(APIView):
 class PasswordResetVerifyOTPView(APIView):
     """Step 2: User submits email + OTP → validates and returns a reset token."""
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -230,8 +233,8 @@ class PasswordResetVerifyOTPView(APIView):
         otp_obj.save()
 
         # Return a short-lived JWT token scoped for password reset only
-        refresh = RefreshToken.for_user(user)
-        reset_token = str(refresh.access_token)
+        reset_token_obj = PasswordResetToken.for_user(user)
+        reset_token = str(reset_token_obj)
 
         return Response({'reset_token': reset_token}, status=status.HTTP_200_OK)
 
@@ -239,9 +242,9 @@ class PasswordResetVerifyOTPView(APIView):
 class PasswordResetConfirmView(APIView):
     """Step 3: User submits reset_token + new_password → sets the new password."""
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
-        from rest_framework_simplejwt.tokens import AccessToken
         from rest_framework_simplejwt.exceptions import TokenError
 
         reset_token = request.data.get('reset_token', '').strip()
@@ -254,7 +257,7 @@ class PasswordResetConfirmView(APIView):
             return Response({'detail': 'Password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            token = AccessToken(reset_token)
+            token = PasswordResetToken(reset_token)
             user_id = token['user_id']
             user = User.objects.get(id=user_id)
         except (TokenError, User.DoesNotExist, KeyError):
@@ -271,6 +274,7 @@ class PasswordResetConfirmView(APIView):
 class SendRegistrationOTPView(APIView):
     """Send OTP to user's email for registration verification."""
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -322,6 +326,7 @@ class SendRegistrationOTPView(APIView):
 class VerifyRegistrationOTPView(APIView):
     """Verify OTP and complete registration."""
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -447,9 +452,9 @@ class MFADisableView(APIView):
 class MFALoginVerifyView(APIView):
     """Completes login process for MFA-enabled users."""
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle]
     
     def post(self, request):
-        from rest_framework_simplejwt.tokens import AccessToken
         from rest_framework_simplejwt.exceptions import TokenError
         
         mfa_token = request.data.get('mfa_token')
@@ -459,7 +464,7 @@ class MFALoginVerifyView(APIView):
             return Response({'detail': 'mfa_token and code are required.'}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            token = AccessToken(mfa_token)
+            token = MFAToken(mfa_token)
             user_id = token['user_id']
             user = User.objects.get(id=user_id)
         except (TokenError, User.DoesNotExist, KeyError):
@@ -478,3 +483,18 @@ class MFALoginVerifyView(APIView):
             })
             
         return Response({'detail': 'Invalid code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+# ─── Admin Dashboard CRUD ────────────────────────────────────────────────────────────
+
+class AdminUserListCreateView(generics.ListCreateAPIView):
+    """Admin endpoint to list all users or create a new user."""
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Admin endpoint to retrieve, update, or delete a user."""
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]

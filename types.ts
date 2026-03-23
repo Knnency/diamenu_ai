@@ -43,7 +43,9 @@ export enum ViewState {
   FORGOT_PASSWORD,
   RESET_PASSWORD,
   SETTINGS,
-  SAVED_RECIPES
+  SAVED_RECIPES,
+  PANTRY,
+  ADMIN_DASHBOARD
 }
 
 export interface BloodSugarLog {
@@ -68,4 +70,20 @@ export interface UserProfile {
     medications?: string;
     restrictions?: string;
   };
+}
+
+export interface PantryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: string;
+}
+
+export interface GroceryItem {
+  id: string;
+  name: string;
+  quantity: string;
+  category: string;
+  isChecked: boolean;
+  isHighGI?: boolean;
 }

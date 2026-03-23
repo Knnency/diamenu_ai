@@ -149,7 +149,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* AI Assistant Card */}
-      <div className="bg-gradient-to-r from-primary-light dark:from-primary/20 to-blue-50 dark:to-gray-800 p-6 rounded-2xl shadow-sm border border-primary/20 dark:border-primary/30">
+      <div className="bg-gradient-to-r from-primary-light dark:from-primary/20 to-blue-50 dark:to-gray-800 p-6 rounded-2xl shadow-md border border-primary/30 dark:border-primary/30">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary/10 text-primary dark:text-accent shrink-0">
             <Icons.Doctor />
@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Chart Section */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Blood Sugar Trends</h2>
           
           {logs.length > 0 ? (
@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Log Form Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex flex-col">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Log Reading</h2>
           
           <form onSubmit={handleAddLog} className="space-y-4 flex-grow">
@@ -313,7 +313,7 @@ const Dashboard: React.FC = () => {
 
       {/* History Table */}
       {logs.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Logs</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
