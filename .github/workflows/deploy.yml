@@ -48,7 +48,7 @@ jobs:
           image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_BACKEND }}:${{ github.sha }}
           flags: |
             --add-cloudsql-instances=diamenu-489712:asia-east1:vetoniodb
-            --update-env-vars=DEBUG=False,CLOUD_SQL_CONNECTION_NAME=diamenu-489712:asia-east1:vetoniodb,DB_NAME=${{ secrets.DB_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}
+            --update-env-vars=DEBUG=False,CLOUD_SQL_CONNECTION_NAME=diamenu-489712:asia-east1:vetoniodb,DB_NAME=${{ secrets.DB_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }},SECRET_KEY=${{ secrets.SECRET_KEY }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       # Build and Push Frontend
       - name: Build Frontend Image
