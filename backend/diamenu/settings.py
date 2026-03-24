@@ -63,14 +63,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'diamenu.wsgi.application'
 
 # --- Database (PostgreSQL) ---
+# Cloud Run uses Unix socket for Cloud SQL; local dev uses TCP host
+_cloud_sql_conn = os.environ.get('CLOUD_SQL_CONNECTION_NAME', '')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'diamenu_db'),
         'USER': os.environ.get('DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'HOST': f'/cloudsql/{_cloud_sql_conn}' if _cloud_sql_conn else os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432') if not _cloud_sql_conn else '',
     }
 }
 
