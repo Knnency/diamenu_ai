@@ -134,3 +134,36 @@ class SavedRecipe(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.user.email}"
+
+
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=200)
+    comment = models.TextField()
+    recommend = models.BooleanField(null=True, blank=True)
+    is_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.user.email} ({self.rating} stars)"
+
+
+class UserActivity(models.Model):
+    ACTIVITY_TYPES = [
+        ('login', 'Login'),
+        ('logout', 'Logout'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
+    activity_type = models.CharField(max_length=10, choices=ACTIVITY_TYPES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name_plural = "User Activities"
+
+    def __str__(self):
+        return f"{self.user.email} - {self.activity_type} at {self.timestamp}"

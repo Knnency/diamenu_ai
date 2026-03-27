@@ -37,8 +37,9 @@ export class RecipeAuditorService {
   }
 
   private initializeAI(): void {
-    if (process.env.GEMINI_API_KEY) {
-      this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (apiKey) {
+      this.ai = new GoogleGenAI({ apiKey });
     }
   }
 

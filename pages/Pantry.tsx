@@ -13,7 +13,8 @@ const Pantry: React.FC = () => {
   const [plannedMeals, setPlannedMeals] = useState<{ name: string; category: string; quantity: string; isHighGI: boolean }[]>([]);
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGeneratingGrocery, setIsGeneratingGrocery] = useState(true);
+  const [isGeneratingGrocery, setIsGeneratingGrocery] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const [checkedGroceryIds, setCheckedGroceryIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -29,13 +30,16 @@ const Pantry: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-    
-    // Independently load the dynamic grocery list
+  };
+
+  const handleGenerateGroceryList = async () => {
+    setIsGeneratingGrocery(true);
     try {
       const plan = await getMealPlan().catch(() => ({}));
       const saved = await getSavedRecipes();
       const generatedList = await generateGroceryList(plan, saved);
       setPlannedMeals(generatedList);
+      setHasGenerated(true);
     } catch (err) {
       console.error('Failed to generate smart grocery list', err);
     } finally {
@@ -144,12 +148,36 @@ const Pantry: React.FC = () => {
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Icons.Check /> Smart Grocery List
           </h2>
+          {hasGenerated && !isGeneratingGrocery && (
+            <button 
+              onClick={handleGenerateGroceryList}
+              className="text-xs font-semibold text-primary hover:text-teal-700 flex items-center gap-1 transition-colors"
+            >
+              <Icons.Refresh size={14} /> Refresh
+            </button>
+          )}
         </div>
         <div className="flex-1 p-6 overflow-hidden">
            {isGeneratingGrocery ? (
              <div className="h-full flex flex-col items-center justify-center text-center">
                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                <p className="text-gray-500 dark:text-gray-400 text-sm animate-pulse">AI is reading your Meal Plan<br/>and evaluating ingredients...</p>
+             </div>
+           ) : !hasGenerated ? (
+             <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
+                 <Icons.Shield size={24} />
+               </div>
+               <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Ready to scan?</h3>
+               <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 max-w-[200px] mx-auto">
+                 We'll cross-reference your Meal Plan with your Pantry to find missing items.
+               </p>
+               <button 
+                 onClick={handleGenerateGroceryList}
+                 className="w-full py-3 px-4 bg-primary text-white rounded-xl font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+               >
+                 <Icons.Refresh size={18} /> Scan for Ingredients
+               </button>
              </div>
            ) : (
              <GroceryList 

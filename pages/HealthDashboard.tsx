@@ -144,8 +144,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Health Dashboard</h1>
-        <p className="text-gray-500 dark:text-gray-400">Track your blood sugar trends over time.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Health Statistics & Trends</h1>
+        <p className="text-gray-500 dark:text-gray-400">Track your blood sugar trends and AI health insights.</p>
       </div>
 
       {/* AI Assistant Card */}

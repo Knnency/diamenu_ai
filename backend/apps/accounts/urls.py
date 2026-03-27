@@ -6,12 +6,15 @@ from .views import (
     SendRegistrationOTPView, VerifyRegistrationOTPView,
     SavedRecipeListCreateView, SavedRecipeDetailView,
     MFASetupView, MFAVerifySetupView, MFADisableView, MFALoginVerifyView,
-    AdminUserListCreateView, AdminUserDetailView
+    AdminUserListCreateView, AdminUserDetailView,
+    ReviewListCreateView, AdminReviewListView, ReviewStatusToggleView,
+    AdminAnalyticsView, LogoutView
 )
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('google/', GoogleLoginView.as_view(), name='google-login'),
@@ -30,4 +33,10 @@ urlpatterns = [
     # Admin endpoints
     path('admin/users/', AdminUserListCreateView.as_view(), name='admin-user-list'),
     path('admin/users/<int:pk>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
+    path('admin/reviews/', AdminReviewListView.as_view(), name='admin-review-list'),
+    path('admin/reviews/<int:pk>/toggle/', ReviewStatusToggleView.as_view(), name='admin-review-toggle'),
+    path('admin/analytics/', AdminAnalyticsView.as_view(), name='admin-analytics'),
+    
+    # User Review endpoints
+    path('reviews/', ReviewListCreateView.as_view(), name='review-list-create'),
 ]

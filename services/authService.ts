@@ -12,7 +12,15 @@ const storeTokens = (access: string, refresh: string, user: object) => {
   localStorage.setItem('refresh_token', refresh);
   localStorage.setItem('user', JSON.stringify(user));
 };
-export const logout = () => {
+export const logout = async () => {
+  const token = getAccessToken();
+  if (token) {
+    try {
+      await apiFetch('/api/auth/logout/', { method: 'POST' });
+    } catch (err) {
+      console.warn('Silent logout recording failed');
+    }
+  }
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('user');
@@ -305,6 +313,52 @@ export const updateUserProfilePicture = async (file: File | null): Promise<UserS
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Failed to update profile picture.');
   return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
+};
+
+// --- Review API calls ---
+export interface Review {
+  id: number;
+  user_name: string;
+  user_email: string;
+  rating: number;
+  title: string;
+  comment: string;
+  recommend: boolean | null;
+  is_approved: boolean;
+  created_at: string;
+}
+
+export const submitReview = async (review: {
+  rating: number;
+  title: string;
+  comment: string;
+  recommend: boolean | null;
+}): Promise<Review> => {
+  const res = await apiFetch('/api/auth/reviews/', {
+    method: 'POST',
+    body: JSON.stringify(review),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to submit review.');
+  return data;
+};
+
+export const getAdminReviews = async (): Promise<Review[]> => {
+  const res = await apiFetch('/api/auth/admin/reviews/', {
+    method: 'GET',
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to fetch reviews.');
+  return data.results || data;
+};
+
+export const toggleReviewStatus = async (reviewId: number): Promise<Review> => {
+  const res = await apiFetch(`/api/auth/admin/reviews/${reviewId}/toggle/`, {
+    method: 'POST',
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to toggle review status.');
+  return data;
 };
 
 export default apiFetch;

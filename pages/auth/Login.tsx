@@ -82,17 +82,17 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
           }
         `}
       </style>
-      
+
       <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-900 overflow-hidden">
-        
+
         {/* Left Side: Brand Story & Abstract Visuals (60%) */}
         <div className="hidden lg:flex w-[60%] relative flex-col justify-center items-start p-16 xl:p-24 overflow-hidden bg-primary/5 dark:bg-primary/10">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-3xl opacity-50 mix-blend-multiply dark:mix-blend-screen animate-pulse duration-10000" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-500/20 blur-3xl opacity-40 mix-blend-multiply dark:mix-blend-screen" style={{ animation: "pulse 8s infinite alternate" }} />
-          
+
           <div className={`relative z-10 max-w-2xl opacity-0 ${mounted ? 'animate-fade-up' : ''}`}>
-            <div className="h-16 w-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-primary/30">
-              <Icons.Leaf className="w-8 h-8" />
+            <div className="mb-8">
+              <img src="/diamernu_glass_logo.png" alt="Logo" className="w-24 h-24 object-contain shadow-2xl shadow-primary/20 rounded-2xl" />
             </div>
             <h1 className="text-5xl xl:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1] mb-6">
               Welcome back to <span className="text-primary transparent">DiaMenu.</span>
@@ -107,8 +107,8 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
         <div className="w-full lg:w-[40%] flex items-center justify-center p-6 sm:p-12 relative z-10 bg-white dark:bg-gray-800 shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)] dark:shadow-none border-l border-gray-100 dark:border-gray-700">
           <div className="w-full max-w-sm">
             <div className={`mb-8 opacity-0 ${mounted ? 'animate-fade-up delay-100' : ''}`}>
-              <div className="lg:hidden h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                <Icons.Leaf />
+              <div className="lg:hidden mb-6">
+                <img src="/diamernu_glass_logo.png" alt="Logo" className="w-16 h-16 object-contain" />
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Welcome back</h2>
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Please enter your details to sign in.</p>
@@ -124,7 +124,7 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
                     placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="group relative">
                   <div className="flex items-center justify-between mb-1.5">
                     <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 transition-colors group-focus-within:text-primary dark:group-focus-within:text-accent">Password</label>

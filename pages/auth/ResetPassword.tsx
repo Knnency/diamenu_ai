@@ -84,8 +84,8 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ changeView, email }) => {
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50 dark:bg-transparent px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
-            <Icons.Check />
+          <div className="mx-auto mb-4 flex justify-center">
+            <img src="/diamernu_glass_logo.png" alt="Logo" className="h-24 w-24 object-contain" />
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             {step === 1 ? 'Verify OTP' : 'New Password'}

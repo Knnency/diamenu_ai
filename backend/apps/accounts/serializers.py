@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User, UserProfile, SavedRecipe
+from .models import User, UserProfile, SavedRecipe, Review
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -97,3 +97,17 @@ class SavedRecipeSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
         except IntegrityError:
             raise serializers.ValidationError({"detail": "You have already saved a recipe with this title."})
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.ReadOnlyField(source='user.name')
+    user_email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = Review
+        fields = ['id', 'user_name', 'user_email', 'rating', 'title', 'comment', 'recommend', 'is_approved', 'created_at']
+        read_only_fields = ['id', 'user_name', 'user_email', 'is_approved', 'created_at']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)

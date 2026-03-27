@@ -57,3 +57,26 @@ export const deleteAdminUser = async (id: number): Promise<void> => {
         }
     }
 };
+
+export interface DetailedActivity {
+  user: string;
+  full_name: string;
+  email: string;
+  activity_type: 'login' | 'logout';
+  timestamp: string;
+}
+
+export interface LoginLogoutStats {
+    logins: { day: string; count: number }[];
+    logouts: { day: string; count: number }[];
+    detailed_logs: DetailedActivity[];
+}
+
+export const getAdminAnalytics = async (): Promise<LoginLogoutStats> => {
+    const res = await apiFetch('/api/auth/admin/analytics/', {
+        method: 'GET',
+    });
+    const data = await safeJson(res);
+    if (!res.ok) throw new Error(data.detail || 'Failed to fetch analytics.');
+    return data;
+};

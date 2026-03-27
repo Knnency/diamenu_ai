@@ -14,8 +14,8 @@ import base64
 from io import BytesIO
 from django.conf import settings
 from django.db import transaction
-from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP, SavedRecipe
-from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer, AdminUserSerializer
+from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP, SavedRecipe, Review, UserActivity
+from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer, AdminUserSerializer, ReviewSerializer
 from .tokens import MFAToken, PasswordResetToken
 from rest_framework.throttling import AnonRateThrottle
 
@@ -69,6 +69,9 @@ class LoginView(TokenObtainPairView):
                 'mfa_token': mfa_token,
                 'detail': 'MFA verification required'
             }, status=status.HTTP_200_OK)
+        
+        # Log successful login
+        UserActivity.objects.create(user=user, activity_type='login')
             
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
@@ -149,6 +152,10 @@ class GoogleLoginView(APIView):
             UserProfile.objects.create(user=user)
 
         refresh = RefreshToken.for_user(user)
+        
+        # Log successful login
+        UserActivity.objects.create(user=user, activity_type='login')
+
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh),
@@ -356,6 +363,9 @@ class VerifyRegistrationOTPView(APIView):
 
         # Generate authentication tokens
         refresh = RefreshToken.for_user(user)
+        
+        # Log successful login
+        UserActivity.objects.create(user=user, activity_type='login')
 
         return Response({
             'access': str(refresh.access_token),
@@ -476,6 +486,10 @@ class MFALoginVerifyView(APIView):
         totp = pyotp.TOTP(user.mfa_secret)
         if totp.verify(code):
             refresh = RefreshToken.for_user(user)
+            
+            # Log successful login
+            UserActivity.objects.create(user=user, activity_type='login')
+
             return Response({
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
@@ -498,3 +512,87 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+# ─── Reviews ──────────────────────────────────────────────────────────────────
+
+class ReviewListCreateView(generics.ListCreateAPIView):
+    """List all reviews for the user or create a new review."""
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class AdminReviewListView(generics.ListAPIView):
+    """Admin endpoint to list all reviews for moderation."""
+    queryset = Review.objects.all().order_by('-created_at')
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+class ReviewStatusToggleView(APIView):
+    """Admin endpoint to toggle review approval status."""
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            with transaction.atomic():
+                review = Review.objects.select_for_update().get(pk=pk)
+                review.is_approved = not review.is_approved
+                review.save(update_fields=['is_approved'])
+                return Response(ReviewSerializer(review).data)
+        except Review.DoesNotExist:
+            return Response({'detail': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# ─── Analytics ────────────────────────────────────────────────────────────────
+
+from django.db.models import Count
+from django.db.models.functions import TruncDay
+
+class AdminAnalyticsView(APIView):
+    """Admin endpoint for system-wide activity analytics."""
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        # Daily logins for last 30 days
+        logins = UserActivity.objects.filter(activity_type='login') \
+            .annotate(day=TruncDay('timestamp')) \
+            .values('day') \
+            .annotate(count=Count('id')) \
+            .order_by('-day')[:30]
+            
+        logouts = UserActivity.objects.filter(activity_type='logout') \
+            .annotate(day=TruncDay('timestamp')) \
+            .values('day') \
+            .annotate(count=Count('id')) \
+            .order_by('-day')[:30]
+
+        # ─── New: Detailed Recent Activity ──────────────────
+        recent_logs = UserActivity.objects.select_related('user').all().order_by('-timestamp')[:50]
+        detailed_logs = [{
+            'user': log.user.email if log.user else 'Unknown',
+            'full_name': log.user.name if log.user else 'System Admin',
+            'email': log.user.email if log.user else 'N/A',
+            'activity_type': log.activity_type,
+            'timestamp': log.timestamp.isoformat()
+        } for log in recent_logs]
+            
+        return Response({
+            'logins': list(logins),
+            'logouts': list(logouts),
+            'detailed_logs': detailed_logs
+        })
+
+class LogoutView(APIView):
+    """Logs the user logout activity and confirms logout."""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        UserActivity.objects.create(user=request.user, activity_type='logout')
+        return Response({'detail': 'Logged out activity recorded.'})

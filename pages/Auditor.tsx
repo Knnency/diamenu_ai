@@ -12,9 +12,6 @@ const DIETARY_OPTIONS = [
   'Vegetarian', 'Vegan', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free', 'Halal', 'Kosher', 'Pescatarian', 'Low-FODMAP'
 ];
 
-const ALLERGY_OPTIONS = [
-  'Dairy', 'Soy', 'Tree Nuts', 'Shellfish', 'Peanuts', 'Gluten', 'Eggs', 'Fish', 'Wheat', 'Sesame'
-];
 
 const SERVING_OPTIONS = [
   '1 person', '2 people', '3 people', '4 people', '5+ people'
@@ -54,6 +51,8 @@ const Auditor: React.FC = () => {
     }
     return [];
   });
+  const [settingsVersion, setSettingsVersion] = useState(0);
+  const bumpSettings = () => setSettingsVersion(v => v + 1);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeIdea | null>(null);
@@ -178,36 +177,35 @@ const Auditor: React.FC = () => {
   // Settings form handlers
   const handleServingsChange = (servings: string) => {
     settingsManager.updateServings(servings);
+    bumpSettings();
   };
 
   const handleCountryChange = (country: string) => {
     settingsManager.updateCountry(country);
+    bumpSettings();
   };
 
   const handleDietaryOptionAdd = (option: string) => {
     settingsManager.addDietaryOption(option);
+    bumpSettings();
   };
 
   const handleDietaryOptionRemove = (option: string) => {
     settingsManager.removeDietaryOption(option);
+    bumpSettings();
   };
 
-  const handleAllergyAdd = (allergy: string) => {
-    settingsManager.addAllergy(allergy);
-  };
-
-  const handleAllergyRemove = (allergy: string) => {
-    settingsManager.removeAllergy(allergy);
-  };
 
   const handleIngredientAdd = (ingredient: string) => {
     settingsManager.addIngredientToAvoid(ingredient);
+    bumpSettings();
     uiManager.setNewIngredientText('');
     uiManager.setAddIngredientOpen(false);
   };
 
   const handleIngredientRemove = (ingredient: string) => {
     settingsManager.removeIngredientToAvoid(ingredient);
+    bumpSettings();
   };
 
   // Recipe management methods
@@ -558,33 +556,6 @@ const Auditor: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Allergies to Avoid</label>
-                    <div className="w-full min-h-[42px] border border-gray-300 dark:border-gray-600 rounded-lg p-1.5 flex flex-wrap gap-1.5 items-center bg-white dark:bg-gray-700">
-                      {currentSettings.allergies.map((allergy, idx) => (
-                        <span key={`${allergy}-${idx}`} className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 text-xs font-medium rounded-md flex items-center gap-1">
-                          {allergy}
-                          <button onClick={() => handleAllergyRemove(allergy)} className="hover:text-emerald-900 dark:hover:text-emerald-100 ml-0.5">
-                            &times;
-                          </button>
-                        </span>
-                      ))}
-                      <select
-                        className="flex-1 min-w-[120px] border-none focus:ring-0 text-sm py-1 px-2 text-gray-500 dark:text-gray-300 bg-transparent dark:[&>option]:bg-gray-800"
-                        onChange={(e) => {
-                          if (e.target.value && !currentSettings.allergies.includes(e.target.value)) {
-                            handleAllergyAdd(e.target.value);
-                          }
-                          e.target.value = "";
-                        }}
-                      >
-                        <option value="">No Allergies</option>
-                        {ALLERGY_OPTIONS.filter(allergy => !currentSettings.allergies.includes(allergy)).map(allergy => (
-                          <option key={allergy} value={allergy}>{allergy}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1">

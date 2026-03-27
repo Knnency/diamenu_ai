@@ -17,6 +17,7 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -26,17 +27,22 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
-    
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters.');
       return;
     }
-    
+
+    if (!agreedToTerms) {
+      setError('Please agree to the Terms and Policy.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await onRegister({ name, email, password });
@@ -86,17 +92,17 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
           }
         `}
       </style>
-      
+
       <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-900 overflow-hidden">
-        
+
         {/* Left Side: Brand Story & Abstract Visuals (60%) */}
         <div className="hidden lg:flex w-[60%] relative flex-col justify-center items-start p-16 xl:p-24 overflow-hidden bg-primary/5 dark:bg-primary/10">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-3xl opacity-50 mix-blend-multiply dark:mix-blend-screen animate-pulse duration-10000" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-500/20 blur-3xl opacity-40 mix-blend-multiply dark:mix-blend-screen" style={{ animation: "pulse 8s infinite alternate" }} />
-          
+
           <div className={`relative z-10 max-w-2xl opacity-0 ${mounted ? 'animate-fade-up' : ''}`}>
-            <div className="h-16 w-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-primary/30">
-              <Icons.Leaf className="w-8 h-8" />
+            <div className="mb-8">
+              <img src="/diamernu_glass_logo.png" alt="Logo" className="w-24 h-24 object-contain shadow-2xl shadow-primary/20 rounded-2xl" />
             </div>
             <h1 className="text-5xl xl:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1] mb-6">
               Start your journey towards <span className="text-primary transparent">healthier eating.</span>
@@ -111,8 +117,8 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
         <div className="w-full lg:w-[40%] flex items-center justify-center p-6 sm:p-12 relative z-10 bg-white dark:bg-gray-800 shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)] dark:shadow-none border-l border-gray-100 dark:border-gray-700">
           <div className="w-full max-w-sm">
             <div className={`mb-8 opacity-0 ${mounted ? 'animate-fade-up delay-100' : ''}`}>
-              <div className="lg:hidden h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                <Icons.Leaf />
+              <div className="lg:hidden mb-6">
+                <img src="/diamernu_glass_logo.png" alt="Logo" className="w-16 h-16 object-contain" />
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Create Account</h2>
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Join DiaMenu today.</p>
@@ -128,7 +134,7 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
                     placeholder="Juan dela Cruz" value={name} onChange={(e) => setName(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="group relative">
                   <label htmlFor="email-address" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 transition-colors group-focus-within:text-primary dark:group-focus-within:text-accent">Email address</label>
                   <input
@@ -137,7 +143,7 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
                     placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="group relative">
                   <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 transition-colors group-focus-within:text-primary dark:group-focus-within:text-accent">Password</label>
                   <input
@@ -162,6 +168,32 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
                   {error}
                 </div>
               )}
+
+              <div className="flex items-start space-x-3 group cursor-pointer" onClick={() => setAgreedToTerms(!agreedToTerms)}>
+                <div className="flex items-center h-5">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 transition-all cursor-pointer"
+                  />
+                </div>
+                <div className="text-sm">
+                  <label htmlFor="terms" className="font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none" onClick={(e) => e.stopPropagation()}>
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); changeView(ViewState.TERMS_POLICY); }}
+                      className="text-primary hover:text-teal-700 dark:text-accent font-semibold hover:underline transition-all"
+                    >
+                      Terms and Policy
+                    </button>
+                  </label>
+                </div>
+              </div>
 
               <button type="submit" disabled={isLoading}
                 className="spring-hover relative flex w-full justify-center rounded-lg bg-primary px-4 py-3.5 text-sm font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-70 disabled:cursor-not-allowed">
