@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '../constants';
 import { SavedRecipe, getSavedRecipes, deleteSavedRecipe } from '../services/authService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
-import { recipeImageService } from '../services/RecipeImageService';
+import { recipeImageServiceAI } from '../services/RecipeImageServiceAI';
+
 import RecipePreviewModal from '../components/RecipePreviewModal';
 import { toast } from 'sonner';
 
@@ -44,7 +45,8 @@ const SavedRecipes: React.FC = () => {
       const recipesWithImages = await Promise.all(
         savedRecipes.map(async (recipe) => {
           try {
-            const imageUrl = await recipeImageService.generateRecipeImage(
+            const imageUrl = await recipeImageServiceAI.generateRecipeImage(
+
               recipe.title,
               recipe.description,
               recipe.tags
@@ -102,7 +104,8 @@ const SavedRecipes: React.FC = () => {
 
   const handleRetryImage = async (recipe: RecipeWithImage) => {
     try {
-      const newImageUrl = await recipeImageService.generateRecipeImage(
+      const newImageUrl = await recipeImageServiceAI.generateRecipeImage(
+
         recipe.title,
         recipe.description,
         recipe.tags

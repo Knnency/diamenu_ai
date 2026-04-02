@@ -7,10 +7,10 @@ export interface RecipeImage {
 
 export class RecipeImageService {
   private getPixabayApiKey(): string {
-    return (import.meta as any).env?.VITE_PIXABAY_API_KEY 
-      || (process as any).env?.REACT_APP_PIXABAY_API_KEY 
-      || (process as any).env?.PIXABAY_API_KEY 
-      || ''; 
+    return (import.meta as any).env?.VITE_PIXABAY_API_KEY
+      || (process as any).env?.REACT_APP_PIXABAY_API_KEY
+      || (process as any).env?.PIXABAY_API_KEY
+      || '';
   }
 
   /**
@@ -86,8 +86,8 @@ export class RecipeImageService {
     try {
       const apiKey = this.getPixabayApiKey();
       if (!apiKey) {
-         console.warn("Pixabay API key not found. Please set VITE_PIXABAY_API_KEY in your .env. Falling back to placeholder.");
-         return this.getSmartPlaceholderUrl(recipeTitle, tags);
+        console.warn("Pixabay API key not found. Please set VITE_PIXABAY_API_KEY in your .env. Falling back to placeholder.");
+        return this.getSmartPlaceholderUrl(recipeTitle, tags);
       }
 
       // Extract the core food name for a concise, accurate search
@@ -117,7 +117,7 @@ export class RecipeImageService {
 
       console.warn(`No images found on Pixabay for "${foodName}". Falling back to placeholder.`);
       return this.getSmartPlaceholderUrl(recipeTitle, tags);
-      
+
     } catch (error) {
       console.error("Error fetching recipe image from Pixabay:", error);
       return this.getFallbackImageUrl(recipeTitle);
@@ -130,7 +130,7 @@ export class RecipeImageService {
   private getSmartPlaceholderUrl(title: string, tags: string[]): string {
     // Create a seed based on title and tags for consistent images
     const seed = this.generateSeed(title, tags);
-    
+
     // Use different placeholder services based on recipe type
     if (tags.some(tag => tag.toLowerCase().includes('filipino'))) {
       return `https://picsum.photos/seed/filipino-${seed}/400/300`;
@@ -143,7 +143,7 @@ export class RecipeImageService {
     } else if (tags.some(tag => tag.toLowerCase().includes('soup'))) {
       return `https://picsum.photos/seed/soup-${seed}/400/300`;
     }
-    
+
     // Default placeholder
     return `https://picsum.photos/seed/recipe-${seed}/400/300`;
   }
@@ -175,10 +175,10 @@ export class RecipeImageService {
     // - Spoonacular API for recipe images
     // - Edamam API for food images
     // - Custom trained model for recipe image recognition
-    
+
     // For now, return smart placeholders
     const mainImage = await this.generateRecipeImage(recipeTitle, '', tags);
-    
+
     return [{
       url: mainImage,
       title: recipeTitle,
@@ -204,7 +204,7 @@ export class RecipeImageService {
    */
   public async getRecipeImageOptions(recipeTitle: string, description: string, tags: string[]): Promise<string[]> {
     const primaryImage = await this.generateRecipeImage(recipeTitle, description, tags);
-    
+
     // Generate fallback options
     const fallbackImages = [
       this.getSmartPlaceholderUrl(recipeTitle, tags),
@@ -214,7 +214,7 @@ export class RecipeImageService {
 
     // Validate and filter accessible images
     const validImages = [primaryImage];
-    
+
     for (const imageUrl of fallbackImages) {
       if (imageUrl !== primaryImage && await this.validateImageUrl(imageUrl)) {
         validImages.push(imageUrl);

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { evaluateWeeklyPlan } from '../services/geminiService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
 import { getSavedRecipes, SavedRecipe } from '../services/authService';
-import { recipeImageService } from '../services/RecipeImageService';
+import { recipeImageServiceAI } from '../services/RecipeImageServiceAI';
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import FoodLoader from '../components/FoodLoader';
@@ -189,13 +190,15 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
     if (found) {
       let imageUrl = `https://picsum.photos/seed/recipe-${found.id}/400/300`;
       try {
-        imageUrl = await recipeImageService.generateRecipeImage(found.title, found.description, found.tags);
+        imageUrl = await recipeImageServiceAI.generateRecipeImage(found.title, found.description, found.tags);
+
       } catch(e) {}
       previewData = { ...found, imageUrl };
     } else {
       let imageUrl = `https://picsum.photos/seed/recipe-${mealName.replace(/\s+/g, '-')}/400/300`;
       try {
-        imageUrl = await recipeImageService.generateRecipeImage(mealName, mealName, []);
+        imageUrl = await recipeImageServiceAI.generateRecipeImage(mealName, mealName, []);
+
       } catch(e) {}
       previewData = {
         id: mealName,
