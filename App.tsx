@@ -174,7 +174,8 @@ const App: React.FC = () => {
                                         <NavItem view={ViewState.HEALTH_STATS} label="Health Stats" icon={<Icons.Chart />} />
                                         <NavItem view={ViewState.SAVED_RECIPES} label="Saved" icon={<Icons.Bookmark />} />
                                         <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
-                                        <NavItem view={ViewState.PANTRY} label="Pantry" icon={<Icons.Leaf />} />
+                                        <NavItem view={ViewState.PANTRY} label="Pantry" icon={<Icons.ShoppingBag />} />
+
                                         {user?.is_superuser && (
                                             <NavItem view={ViewState.ADMIN_DASHBOARD} label="Admin" icon={<Icons.Shield />} />
                                         )}
@@ -236,7 +237,8 @@ const App: React.FC = () => {
                                     <NavItem view={ViewState.HEALTH_STATS} label="Health Stats" icon={<Icons.Chart />} />
                                     <NavItem view={ViewState.SAVED_RECIPES} label="Saved" icon={<Icons.Bookmark />} />
                                     <NavItem view={ViewState.MEAL_PLAN} label="Meal Plan" icon={<Icons.Calendar />} />
-                                    <NavItem view={ViewState.PANTRY} label="Pantry" icon={<Icons.Leaf />} />
+                                    <NavItem view={ViewState.PANTRY} label="Pantry" icon={<Icons.ShoppingBag />} />
+
                                     {user?.is_superuser && (
                                         <NavItem view={ViewState.ADMIN_DASHBOARD} label="Admin" icon={<Icons.Shield />} />
                                     )}

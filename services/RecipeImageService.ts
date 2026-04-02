@@ -14,7 +14,73 @@ export class RecipeImageService {
   }
 
   /**
-   * Get a recipe image URL using the Pixabay API directly
+   * Extract the core food/dish name from a verbose recipe title.
+   * e.g. "Diabetes-Friendly Chicken Adobo (1 Serving)" → "Chicken Adobo"
+   * e.g. "Filipino-Inspired Low-Carb Chicken Adobo Pizza" → "Chicken Adobo Pizza"
+   */
+  private extractFoodName(title: string): string {
+    let cleaned = title;
+
+    // Remove parenthetical content like "(1 Serving)", "(Diabetes-Friendly)"
+    cleaned = cleaned.replace(/\([^)]*\)/g, '');
+
+    // Remove common health/diet modifier words (case-insensitive)
+    const modifiersToRemove = [
+      'diabetes-friendly', 'diabetic-friendly', 'diabetic',
+      'low-carb', 'low-fat', 'low-sodium', 'low-sugar', 'low-calorie', 'low-gi',
+      'high-protein', 'high-fiber',
+      'sugar-free', 'gluten-free', 'dairy-free', 'grain-free',
+      'heart-healthy', 'gut-friendly',
+      'keto', 'paleo', 'vegan', 'vegetarian',
+      'filipino-inspired', 'asian-inspired', 'mediterranean-inspired',
+      'healthy', 'nutritious', 'wholesome', 'guilt-free',
+      'smart-swap', 'modified', 'revamped', 'reimagined', 're-imagined',
+      'type 1', 'type 2', 'pre-diabetic',
+    ];
+
+    for (const modifier of modifiersToRemove) {
+      cleaned = cleaned.replace(new RegExp(`\\b${modifier}\\b`, 'gi'), '');
+    }
+
+    // Remove serving info like "1 Serving", "2 Servings", "for 4"
+    cleaned = cleaned.replace(/\b\d+\s*servings?\b/gi, '');
+    cleaned = cleaned.replace(/\bfor\s+\d+\b/gi, '');
+    cleaned = cleaned.replace(/\bserves?\s+\d+\b/gi, '');
+
+    // Collapse multiple spaces and trim
+    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
+
+    // Remove leading/trailing hyphens or dashes left over
+    cleaned = cleaned.replace(/^[\s\-–—]+|[\s\-–—]+$/g, '').trim();
+
+    // If we stripped everything, fall back to the original title
+    if (!cleaned || cleaned.length < 3) {
+      cleaned = title.replace(/\([^)]*\)/g, '').trim();
+    }
+
+    return cleaned;
+  }
+
+  /**
+   * Try a Pixabay search with the given query. Returns the image URL or null.
+   */
+  private async tryPixabaySearch(apiKey: string, query: string): Promise<string | null> {
+    const encodedQuery = encodeURIComponent(query);
+    const pixabayUrl = `https://pixabay.com/api/?key=${apiKey}&q=${encodedQuery}&image_type=photo&category=food&orientation=horizontal&safesearch=true&per_page=5`;
+
+    const response = await fetch(pixabayUrl);
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.hits?.length > 0) {
+        return data.hits[0].webformatURL;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get a recipe image URL using the Pixabay API directly.
+   * Uses a smart query extraction strategy to find the most relevant food image.
    */
   public async generateRecipeImage(recipeTitle: string, recipeDescription: string, tags: string[]): Promise<string> {
     try {
@@ -24,22 +90,32 @@ export class RecipeImageService {
          return this.getSmartPlaceholderUrl(recipeTitle, tags);
       }
 
-      // Encode the recipe title for the URL query
-      const encodedQuery = encodeURIComponent(recipeTitle);
-      const pixabayUrl = `https://pixabay.com/api/?key=${apiKey}&q=${encodedQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=3`;
+      // Extract the core food name for a concise, accurate search
+      const foodName = this.extractFoodName(recipeTitle);
+      console.log(`[RecipeImageService] Title: "${recipeTitle}" → Search query: "${foodName}"`);
 
-      const response = await fetch(pixabayUrl);
+      // Strategy 1: Search with the extracted food name
+      let imageUrl = await this.tryPixabaySearch(apiKey, foodName);
+      if (imageUrl) return imageUrl;
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Return the first image result's webformatURL
-        if (data && data.hits && data.hits.length > 0) {
-          return data.hits[0].webformatURL;
-        }
+      // Strategy 2: Try with just the last 2-3 significant words (the dish name)
+      const words = foodName.split(/\s+/).filter(w => w.length > 2);
+      if (words.length > 2) {
+        const shortQuery = words.slice(-3).join(' ');
+        console.log(`[RecipeImageService] Retrying with shorter query: "${shortQuery}"`);
+        imageUrl = await this.tryPixabaySearch(apiKey, shortQuery);
+        if (imageUrl) return imageUrl;
       }
-      
-      console.warn(`No images found on Pixabay or request failed (status: ${response.status}). Falling back to placeholder.`);
+
+      // Strategy 3: Use the first relevant tag + "food" as a last resort
+      if (tags.length > 0) {
+        const tagQuery = `${tags[0]} food`;
+        console.log(`[RecipeImageService] Retrying with tag query: "${tagQuery}"`);
+        imageUrl = await this.tryPixabaySearch(apiKey, tagQuery);
+        if (imageUrl) return imageUrl;
+      }
+
+      console.warn(`No images found on Pixabay for "${foodName}". Falling back to placeholder.`);
       return this.getSmartPlaceholderUrl(recipeTitle, tags);
       
     } catch (error) {

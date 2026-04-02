@@ -12,6 +12,42 @@ import { ViewState } from '../types';
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
+// ─── 20 pre-written diabetes-friendly Chef Tips (no AI cost) ─────────────────
+const CHEF_TIPS = [
+  { tip: "Replace white rice with cauliflower rice or brown rice to significantly reduce the glycemic impact of your meals while keeping you full longer.", emoji: "🍚" },
+  { tip: "Use calamansi or lemon juice to balance savory dishes instead of adding extra salt. It brightens flavors and supports healthy blood pressure.", emoji: "🍋" },
+  { tip: "Choose bangus (milkfish) or tilapia over fried pork when possible—they're rich in omega-3s and protein without the saturated fat spike.", emoji: "🐟" },
+  { tip: "Swap refined sugar with stevia or monk fruit sweetener in desserts and drinks. Both have zero glycemic index and won't spike blood sugar.", emoji: "🍯" },
+  { tip: "Add malunggay (moringa) leaves to your soups and stews. They're packed with vitamins, minerals, and antioxidants that support insulin sensitivity.", emoji: "🌿" },
+  { tip: "Batch-cook your proteins and vegetables on Sunday. Having ready-to-eat food prevents reaching for high-GI fast foods during busy weekdays.", emoji: "🥡" },
+  { tip: "Prepare Monggo (mung bean soup) with smoked fish (tinapa) flakes instead of pork chicharon for rich flavor without the saturated fat.", emoji: "🫘" },
+  { tip: "Eat your vegetables first before your rice or carbs. This simple habit slows glucose absorption and lowers your post-meal blood sugar spike.", emoji: "🥦" },
+  { tip: "Use coconut aminos instead of soy sauce when possible—it has less sodium and a lower impact on blood pressure for diabetics.", emoji: "🥢" },
+  { tip: "Ampalaya (bitter melon) is one of the most powerful natural blood sugar regulators. Add it to ginisa dishes or drink as tea a few times a week.", emoji: "🥒" },
+  { tip: "Cook with olive oil or coconut oil instead of lard or shortening to get healthier fats that support heart health, which is critical for diabetics.", emoji: "🫙" },
+  { tip: "Allow cooked rice to cool before eating—chilling it increases its resistant starch content, lowering the GI and making it safer for blood sugar.", emoji: "❄️" },
+  { tip: "Add chia seeds or flax seeds to your smoothies or oatmeal. They are excellent sources of fiber that slow carb digestion and control blood sugar.", emoji: "✨" },
+  { tip: "Steam or boil your vegetables instead of frying them. Steamed vegetables retain more nutrients and add fewer calories to your plate.", emoji: "♨️" },
+  { tip: "Keep healthy snacks like hard-boiled eggs, a handful of almonds, or apple slices with peanut butter ready to avoid blood sugar crashes between meals.", emoji: "🥚" },
+  { tip: "Sinigang is a diabetes-friendly classic! Choose high-fiber vegetables like sitaw (string beans), labanos (radish), and kangkong to maximize its benefits.", emoji: "🍲" },
+  { tip: "Marinate lean meats in vinegar-based marinades (like adobo without sugar). Vinegar has been shown to slow gastric emptying and reduce blood sugar spikes.", emoji: "🥩" },
+  { tip: "Choose whole-wheat or sourdough bread over white bread for breakfast. They have a lower glycemic index and keep you fuller throughout the morning.", emoji: "🍞" },
+  { tip: "Drink water or unsweetened herbal teas like pandan or ginger tea between meals. Staying hydrated improves insulin sensitivity and metabolic health.", emoji: "🫖" },
+  { tip: "Pair carbohydrates with protein and healthy fat at every meal. This trio slows down sugar absorption and prevents post-meal glucose spikes.", emoji: "⚖️" },
+];
+
+/**
+ * Returns a tip that rotates daily, cycling through all 20 tips.
+ * Uses the day-of-year so each calendar day gets a consistent, different tip.
+ */
+const getDailyTip = (): typeof CHEF_TIPS[0] => {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return CHEF_TIPS[dayOfYear % CHEF_TIPS.length];
+};
+
 interface MealPlanProps {
   changeView: (view: ViewState) => void;
 }
@@ -398,15 +434,26 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
         })}
       </div>
 
-      <div className="bg-accent/30 dark:bg-accent/20 p-6 rounded-xl border border-accent flex items-start gap-4">
-        <span className="text-2xl">💡</span>
-        <div>
-            <h4 className="font-bold text-gray-800 dark:text-white">Chef's Tip for {activeDay}</h4>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                Preparing Monggo on Tuesdays is a Filipino tradition! Remember to skip the pork chicharon topping and use smoked fish (tinapa) flakes for flavor without the saturated fat.
-            </p>
-        </div>
-      </div>
+      {/* Chef's Tip – rotates daily through 20 pre-written tips */}
+      {(() => {
+        const { tip, emoji } = getDailyTip();
+        const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        return (
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-5 rounded-2xl border border-amber-200 dark:border-amber-800/50 flex items-start gap-4 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
+              {emoji}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-bold text-amber-900 dark:text-amber-200 text-sm">Chef's Tip · {dayName}</h4>
+                <span className="text-xs px-2 py-0.5 bg-amber-200 dark:bg-amber-800/60 text-amber-800 dark:text-amber-300 rounded-full font-medium">Daily</span>
+              </div>
+              <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">{tip}</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {previewRecipe && (
         <RecipePreviewModal
           recipe={previewRecipe}

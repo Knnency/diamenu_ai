@@ -6,6 +6,7 @@ import { RecipeAuditorService, RecipeIdea } from '../services/RecipeAuditorServi
 import { SettingsManager } from '../services/SettingsManager';
 import { ChatManager } from '../services/ChatManager';
 import { UIComponentManager } from '../services/UIComponentManager';
+import { toast } from 'sonner';
 
 // Constants for dietary options and allergies
 const DIETARY_OPTIONS = [
@@ -91,6 +92,10 @@ const Auditor: React.FC = () => {
   const [uiState, setUIState] = useState(() => uiManager.getState());
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
+
+
 
   // Initialize UI manager subscription
   useEffect(() => {
@@ -100,15 +105,28 @@ const Auditor: React.FC = () => {
     return unsubscribe;
   }, [uiManager]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom within the container ONLY when messages change
+  // We use direct scrollTop manipulation instead of scrollIntoView to prevent the whole browser window from jumping
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
-  // Update settings in recipe service when settings change
+
+
+  // Update settings and profile in recipe service whenever they change.
+  // settingsVersion is bumped on every individual setting change (servings, country, diet, ingredients).
   useEffect(() => {
     recipeService.updateSettings(settingsManager.getSettings());
-  }, [recipeService, settingsManager]);
+    recipeService.updateUserProfile(userProfile);
+  }, [recipeService, settingsManager, settingsVersion, userProfile]);
+
 
   const handleSendMessage = async (e?: React.FormEvent, predefinedText?: string) => {
     e?.preventDefault();
@@ -156,11 +174,15 @@ const Auditor: React.FC = () => {
   // Settings management methods
   const handleSaveSettings = () => {
     const currentSettings = settingsManager.getSettings();
+    // Sync updated dietary/allergen settings back to userProfile state for UI tags
     setUserProfile(prev => ({
       ...prev,
       dietaryPreferences: currentSettings.dietaryOptions,
       allergens: currentSettings.allergies
     }));
+    // CRITICAL FIX: Push the full settings (incl. servings, country, ingredients to avoid)
+    // into the recipeService so the next AI prompt uses them.
+    recipeService.updateSettings(currentSettings);
     uiManager.setSettingsOpen(false);
   };
 
@@ -210,6 +232,11 @@ const Auditor: React.FC = () => {
 
   // Recipe management methods
   const handleRecipePreview = (recipe: RecipeIdea) => {
+    // Parse servings from settings (e.g. "2 people" -> 2)
+    const settings = settingsManager.getSettings();
+    const servingCount = parseInt(settings.servings) || 2;
+    uiManager.setPreviewServings(servingCount);
+    
     setSelectedRecipe(recipe);
     uiManager.setPreviewOpen(true);
   };
@@ -217,16 +244,39 @@ const Auditor: React.FC = () => {
   const handleRecipeSave = async (recipe: RecipeIdea) => {
     try {
       await recipeService.saveRecipe(recipe);
-      // Show success message or feedback
-      chatManager.addBotMessage(`Recipe "${recipe.title}" has been saved to your collection!`);
-      setMessages(chatManager.getMessages());
+      toast.success(`Recipe "${recipe.title}" has been saved to your collection!`);
+      
+      // Remove the recipe from the ideas list once saved
+      const updatedIdeas = recipeIdeas.filter(r => r.id !== recipe.id);
+      setRecipeIdeas(updatedIdeas);
+      sessionStorage.setItem('auditor_recipe_ideas', JSON.stringify(updatedIdeas));
+      
       uiManager.setPreviewOpen(false);
     } catch (error) {
       console.error("Failed to save recipe:", error);
-      chatManager.addBotMessage(`Sorry, I couldn't save the recipe "${recipe.title}". Please try again.`);
-      setMessages(chatManager.getMessages());
+      toast.error(`Sorry, I couldn't save the recipe "${recipe.title}". Please try again.`);
     }
   };
+
+  const handleBulkSave = async () => {
+    if (recipeIdeas.length === 0) return;
+    
+    const toastId = toast.loading(`Saving ${recipeIdeas.length} recipes to your collection...`);
+    try {
+      // Save all recipes in parallel
+      await Promise.all(recipeIdeas.map(recipe => recipeService.saveRecipe(recipe)));
+      
+      toast.success(`Successfully saved all ${recipeIdeas.length} recipes!`, { id: toastId });
+      
+      // Clear recipe ideas from UI and session storage
+      setRecipeIdeas([]);
+      sessionStorage.removeItem('auditor_recipe_ideas');
+    } catch (error) {
+      console.error("Failed to bulk save recipes:", error);
+      toast.error("Some recipes could not be saved. Please try again.", { id: toastId });
+    }
+  };
+
 
   // UI state management
   const handleSettingsOpen = () => {
@@ -249,10 +299,6 @@ const Auditor: React.FC = () => {
   const handlePreviewClose = () => {
     uiManager.setPreviewOpen(false);
     setSelectedRecipe(null);
-  };
-
-  const handlePreviewServingsChange = (servings: number) => {
-    uiManager.setPreviewServings(servings);
   };
 
   const handlePreviewTextSizeChange = (size: number) => {
@@ -321,21 +367,33 @@ const Auditor: React.FC = () => {
             <span className="px-2.5 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 rounded-full">
               Servings: {currentSettings.servings}
             </span>
-            {userProfile.dietaryPreferences.map(diet => (
+            <span className="px-2.5 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 rounded-full">
+              Country: {currentSettings.country}
+            </span>
+            {currentSettings.dietaryOptions.map(diet => (
               <span key={diet} className="px-2.5 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 rounded-full">
                 Diet: {diet}
               </span>
             ))}
-            {userProfile.allergens.map(allergy => (
+            {currentSettings.allergies.map(allergy => (
               <span key={allergy} className="px-2.5 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 rounded-full">
                 Allergy: {allergy}
+              </span>
+            ))}
+            {currentSettings.ingredientsToAvoid.map(item => (
+              <span key={item} className="px-2.5 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
+                Avoid: {item}
               </span>
             ))}
           </div>
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div 
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto p-4 space-y-6"
+        >
+
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.sender === 'bot' && (
@@ -451,9 +509,14 @@ const Auditor: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 space-y-2">
-          <button className="w-full py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
+          <button 
+            onClick={handleBulkSave}
+            disabled={recipeIdeas.length === 0}
+            className="w-full py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Icons.Check /> Bulk Save
           </button>
+
           <button
             onClick={handleNotQuiteRight}
             className="w-full py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -670,11 +733,24 @@ const Auditor: React.FC = () => {
           <div className="bg-[#111] text-gray-200 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-gray-800 flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-gray-800 bg-[#1a1a1a]">
-              <div className="flex items-center gap-2 text-orange-500 font-medium">
-                <Icons.User /> Servings
-              </div>
-              <div className="flex items-center bg-black rounded-lg border border-gray-800 overflow-hidden">
-                <span className="px-4 py-1 text-white font-medium">{uiState.previewServings}</span>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-orange-500 font-medium">
+                    <Icons.User /> Servings
+                  </div>
+                  <div className="flex items-center bg-black rounded-lg border border-gray-800 overflow-hidden ml-2">
+                    <span className="px-4 py-1 text-white font-medium">{uiState.previewServings}</span>
+                  </div>
+                </div>
+
+                <div className="hidden md:flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-emerald-500 font-medium">
+                    <Icons.Leaf /> Context
+                  </div>
+                  <span className="px-3 py-1 bg-gray-900 text-gray-300 text-sm rounded-lg border border-gray-800">
+                    {currentSettings.country}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={handlePreviewClose}

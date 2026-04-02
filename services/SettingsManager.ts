@@ -12,7 +12,7 @@ export class SettingsManager {
 
   private initializeSettings(): RecipeSettings {
     return {
-      servings: '1 people',
+      servings: '1 person',
       country: 'Philippines',
       dietaryOptions: [...this.userProfile.dietaryPreferences],
       allergies: [...this.userProfile.allergens],
