@@ -13,7 +13,7 @@ import { recipeImageService } from "./RecipeImageService";
  */
 export class RecipeImageServiceAI {
   private ai: GoogleGenAI;
-  private readonly imageModel = "gemini-2.0-flash-preview-image-generation";
+  private readonly imageModel = "gemini-2.5-flash";
 
   constructor() {
     const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
