@@ -4,16 +4,20 @@ import { recipeImageService } from "./RecipeImageService";
 /**
  * RecipeImageServiceAI
  *
- * Generates photorealistic food images using Google's Gemini image generation model.
- * Produces exact, AI-generated images of the dish — far more accurate than a
- * Pixabay keyword search.
+ * PRIMARY: Generates photorealistic food images using Google's Gemini
+ *   image generation model (gemini-2.0-flash-preview-image-generation).
+ *   Returns a base64 data URL, so it works in any environment without
+ *   needing a separate Pixabay API key.
  *
- * Falls back to the standard RecipeImageService (Pixabay) if AI generation fails
- * or if the API key is not available.
+ * FALLBACK: If AI generation fails, falls back to the Pixabay
+ *   RecipeImageService which requires VITE_PIXABAY_API_KEY.
  */
 export class RecipeImageServiceAI {
   private ai: GoogleGenAI;
-  private readonly imageModel = "gemini-2.5-flash";
+
+  // ✅ Correct model — this is the only Gemini model that outputs images
+  // gemini-2.5-flash is a TEXT model and cannot generate images
+  private readonly imageModel = "gemini-2.0-flash-preview-image-generation";
 
   constructor() {
     const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
@@ -21,34 +25,49 @@ export class RecipeImageServiceAI {
   }
 
   /**
-   * Build a detailed, descriptive food photography prompt from a recipe title.
-   * More descriptive prompts = more accurate and appetizing images.
+   * Build a detailed, descriptive food photography prompt.
+   * Detects Filipino dishes and adjusts the styling accordingly.
    */
   private buildImagePrompt(recipeTitle: string, tags: string[]): string {
-    const isFilipino = tags.some(t =>
-      t.toLowerCase().includes('filipino') ||
-      t.toLowerCase().includes('pinoy') ||
-      t.toLowerCase().includes('pilipino')
-    ) || /sinigang|adobo|kare|lechon|tinola|sisig|monggo|bangus|bulalo|menudo|mechado|caldereta|pinakbet|bistek/i.test(recipeTitle);
+    const isFilipino =
+      tags.some((t) =>
+        ["filipino", "pinoy", "pilipino"].some((kw) =>
+          t.toLowerCase().includes(kw)
+        )
+      ) ||
+      /sinigang|adobo|kare.?kare|lechon|tinola|sisig|monggo|bangus|bulalo|menudo|mechado|caldereta|pinakbet|bistek|nilaga|afritada|pochero|pakbet|ginataan|laing|dinuguan/i.test(
+        recipeTitle
+      );
 
     const dishContext = isFilipino
-      ? "traditional Filipino dish served in a clay or ceramic bowl on a wooden table, authentic Filipino food photography style"
-      : "authentic dish served on a clean white plate with professional food styling";
+      ? "traditional Filipino dish served in a clay or ceramic bowl on a rustic wooden table, authentic Filipino food photography style"
+      : "dish served on a clean white plate with professional food styling against a neutral background";
+
+    // Strip medical/health modifiers from the title before using it in the prompt
+    // to help the model focus on the food itself
+    const foodFocusedTitle = recipeTitle
+      .replace(
+        /\b(diabetes-friendly|diabetic|low-carb|low-fat|low-gi|high-protein|sugar-free|healthy|whole wheat|lean)\b/gi,
+        ""
+      )
+      .replace(/\([^)]*\)/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
 
     return [
-      `Professional food photography of "${recipeTitle}".`,
-      `A beautifully plated, appetizing, and realistic ${dishContext}.`,
-      "Soft natural lighting from the side, shallow depth of field, sharp focus on the food.",
-      "Close-up overhead or 45-degree angle shot. Restaurant-quality presentation.",
-      "No text, no watermarks, no people. Only the food.",
+      `Professional close-up food photograph of "${foodFocusedTitle}".`,
+      `A beautifully plated, realistic, and appetizing ${dishContext}.`,
+      "Warm, soft studio lighting. Shallow depth of field. Sharp focus on the dish.",
+      "Overhead or 45-degree angle shot. Clean background. No humans, no text, no watermarks.",
+      "Highly detailed, restaurant-quality, mouth-watering food photography.",
     ].join(" ");
   }
 
   /**
-   * Generate a photorealistic food image using Gemini's image generation.
+   * Generate a photorealistic food image using Gemini's image generation model.
    *
-   * Returns a base64 data URL (data:image/png;base64,...) that can be used
-   * directly in an <img> src attribute.
+   * Returns a base64 data URL (data:image/jpeg;base64,...) that works
+   * everywhere — no external image URL dependency.
    *
    * Falls back to Pixabay (RecipeImageService) if generation fails.
    */
@@ -57,56 +76,74 @@ export class RecipeImageServiceAI {
     recipeDescription: string,
     tags: string[]
   ): Promise<string> {
-    try {
-      const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        console.warn("[RecipeImageServiceAI] No Gemini API key found. Falling back to Pixabay.");
-        return recipeImageService.generateRecipeImage(recipeTitle, recipeDescription, tags);
-      }
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
 
+    if (!apiKey) {
+      console.warn(
+        "[RecipeImageServiceAI] VITE_GEMINI_API_KEY not found. Falling back to Pixabay."
+      );
+      return recipeImageService.generateRecipeImage(
+        recipeTitle,
+        recipeDescription,
+        tags
+      );
+    }
+
+    try {
       const prompt = this.buildImagePrompt(recipeTitle, tags);
       console.log(`[RecipeImageServiceAI] Generating image for: "${recipeTitle}"`);
-      console.log(`[RecipeImageServiceAI] Prompt: ${prompt}`);
 
       const response = await this.ai.models.generateContent({
         model: this.imageModel,
         contents: prompt,
         config: {
-          responseModalities: ["Image"],
+          // NOTE: responseModalities MUST include "Image" for image generation
+          responseModalities: ["Image", "Text"],
           numberOfImages: 1,
         } as any,
       });
 
-      // Find the image part in the response
-      const candidates = (response as any).candidates;
-      if (candidates && candidates.length > 0) {
+      // Safely navigate the response to find the image inline data
+      const candidates = (response as any)?.candidates;
+      if (Array.isArray(candidates) && candidates.length > 0) {
         const parts = candidates[0]?.content?.parts;
-        if (parts) {
+        if (Array.isArray(parts)) {
           for (const part of parts) {
-            if (part.inlineData?.data && part.inlineData?.mimeType) {
+            if (part?.inlineData?.data && part?.inlineData?.mimeType) {
               const { data, mimeType } = part.inlineData;
-              const dataUrl = `data:${mimeType};base64,${data}`;
-              console.log(`[RecipeImageServiceAI] ✅ Image generated for: "${recipeTitle}"`);
-              return dataUrl;
+              console.log(
+                `[RecipeImageServiceAI] ✅ AI image generated for: "${recipeTitle}" (${mimeType})`
+              );
+              return `data:${mimeType};base64,${data}`;
             }
           }
         }
       }
 
-      // If we got a response but no image part, fall back
-      console.warn("[RecipeImageServiceAI] No image in response. Falling back to Pixabay.");
-      return recipeImageService.generateRecipeImage(recipeTitle, recipeDescription, tags);
-
+      // Response came back but had no image — fall back
+      console.warn(
+        `[RecipeImageServiceAI] Response had no image part for "${recipeTitle}". Falling back to Pixabay.`
+      );
+      return recipeImageService.generateRecipeImage(
+        recipeTitle,
+        recipeDescription,
+        tags
+      );
     } catch (error: any) {
-      console.error("[RecipeImageServiceAI] Image generation failed:", error?.message || error);
-      console.warn("[RecipeImageServiceAI] Falling back to Pixabay search.");
-      return recipeImageService.generateRecipeImage(recipeTitle, recipeDescription, tags);
+      console.error(
+        `[RecipeImageServiceAI] Image generation failed for "${recipeTitle}":`,
+        error?.message || error
+      );
+      return recipeImageService.generateRecipeImage(
+        recipeTitle,
+        recipeDescription,
+        tags
+      );
     }
   }
 
   /**
    * Regenerate an image — useful for a "Refresh Image" button.
-   * Each call produces a freshly generated, unique image.
    */
   public async regenerateRecipeImage(
     recipeTitle: string,
@@ -116,5 +153,5 @@ export class RecipeImageServiceAI {
   }
 }
 
-// Export singleton instance
+// Singleton
 export const recipeImageServiceAI = new RecipeImageServiceAI();
