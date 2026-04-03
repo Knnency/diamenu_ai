@@ -84,7 +84,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class SavedRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedRecipe
-        fields = ['id', 'title', 'description', 'tags', 'ingredients', 
+        fields = ['id', 'title', 'description', 'image_url', 'tags', 'ingredients', 
                   'preparation', 'instructions', 'servings', 'country',
                   'dietary_options', 'allergies', 'ingredients_to_avoid',
                   'created_at', 'updated_at']

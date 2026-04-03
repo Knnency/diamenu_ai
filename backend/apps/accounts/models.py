@@ -116,6 +116,7 @@ class SavedRecipe(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_recipes')
     title = models.CharField(max_length=200)
     description = models.TextField()
+    image_url = models.TextField(blank=True, null=True)
     tags = models.JSONField(default=list, blank=True)
     ingredients = models.JSONField(default=list, blank=True)
     preparation = models.JSONField(default=list, blank=True)
