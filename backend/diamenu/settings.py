@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     # DiaMenu apps
     'apps.accounts',
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'apps.auditor',
     'apps.mealplan',
     'apps.pantry',
+    'apps.ai',
 ]
 
 MIDDLEWARE = [
@@ -116,6 +118,9 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '10/minute',
+        'otp_send': '3/hour',
+        'otp_verify': '5/minute',
+        'ai_requests': '10/minute',
     }
 }
 
@@ -143,17 +148,23 @@ else:
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 CORS_ALLOW_CREDENTIALS = True
 
-# --- Email Settings ---
-if DEBUG:
-    # Use console backend for local development to bypass Resend restrictions
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-else:
-    # Use Resend SMTP for production
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.resend.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'resend'                                  # Always the literal string "resend"
-    EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY', '')  # Your Resend API key
+# --- Security Settings (Mitigate T-04) ---
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'DiaMenu <noreply@diamenu.online>')
+# --- Email Settings ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'your-email@gmail.com')
+
+# AI Settings
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', os.environ.get('VITE_GEMINI_API_KEY', ''))

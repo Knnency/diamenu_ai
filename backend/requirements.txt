@@ -10,3 +10,4 @@ google-auth[requests]>=2.0.0
 pyotp==2.9.0
 qrcode==8.2
 
+google-genai

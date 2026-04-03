@@ -1,24 +1,29 @@
 import os
 from rest_framework import status, generics
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 import google.oauth2.id_token
 import google.auth.transport.requests
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
-import pyotp
-import qrcode
-import base64
-from io import BytesIO
-from django.conf import settings
-from django.db import transaction
-from .models import User, UserProfile, PasswordResetOTP, RegistrationOTP, SavedRecipe, Review, UserActivity
-from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer, AdminUserSerializer, ReviewSerializer
-from .tokens import MFAToken, PasswordResetToken
+from django.db.models import Count, Avg, F
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import User, UserProfile, UserActivity, RegistrationOTP, PasswordResetOTP, SavedRecipe, Review
+from .tokens import PasswordResetToken
+from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer, AdminUserSerializer, ReviewSerializer
+from .throttles import OTPSendThrottle, OTPVerifyThrottle
+from .permissions import IsSuperUser
+import pyotp
+
+# ─── Authentication Views ────────────────────────────────────────────────────
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -77,13 +82,15 @@ class LoginView(TokenObtainPairView):
 
 
 class ProfileView(APIView):
+    """Retrieve or update user profile."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Use select_related to avoid N+1 queries
-        user = User.objects.select_related('profile').get(pk=request.user.pk)
+        user = request.user
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        response = Response(serializer.data)
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return response
 
     def put(self, request):
         # Use select_for_update to prevent race conditions and optimize query
@@ -168,6 +175,7 @@ class GoogleLoginView(APIView):
 class PasswordResetRequestView(APIView):
     """Step 1: User submits email → generate OTP and send via Gmail."""
     permission_classes = [AllowAny]
+    throttle_classes = [OTPSendThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -215,7 +223,7 @@ class PasswordResetRequestView(APIView):
 class PasswordResetVerifyOTPView(APIView):
     """Step 2: User submits email + OTP → validates and returns a reset token."""
     permission_classes = [AllowAny]
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [OTPVerifyThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -249,7 +257,7 @@ class PasswordResetVerifyOTPView(APIView):
 class PasswordResetConfirmView(APIView):
     """Step 3: User submits reset_token + new_password → sets the new password."""
     permission_classes = [AllowAny]
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [OTPVerifyThrottle]
 
     def post(self, request):
         from rest_framework_simplejwt.exceptions import TokenError
@@ -281,7 +289,7 @@ class PasswordResetConfirmView(APIView):
 class SendRegistrationOTPView(APIView):
     """Send OTP to user's email for registration verification."""
     permission_classes = [AllowAny]
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [OTPSendThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -290,7 +298,8 @@ class SendRegistrationOTPView(APIView):
 
         # Check if user already exists
         if User.objects.filter(email=email).exists():
-            return Response({'detail': 'An account with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Return generic success to prevent email enumeration
+            return Response({'detail': 'Verification code sent successfully.'}, status=status.HTTP_200_OK)
 
         # Create a temporary user record for OTP (will be activated after verification)
         user, created = User.objects.get_or_create(
@@ -333,7 +342,7 @@ class SendRegistrationOTPView(APIView):
 class VerifyRegistrationOTPView(APIView):
     """Verify OTP and complete registration."""
     permission_classes = [AllowAny]
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [OTPVerifyThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -504,15 +513,18 @@ class AdminUserListCreateView(generics.ListCreateAPIView):
     """Admin endpoint to list all users or create a new user."""
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = AdminUserSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
-
+    permission_classes = [IsAuthenticated, IsSuperUser]
 
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Admin endpoint to retrieve, update, or delete a user."""
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsSuperUser]
 
+    def perform_destroy(self, instance):
+        # Prevent admins from deleting themselves
+        if instance == self.request.user:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 # ─── Reviews ──────────────────────────────────────────────────────────────────
 
@@ -532,42 +544,38 @@ class AdminReviewListView(generics.ListAPIView):
     """Admin endpoint to list all reviews for moderation."""
     queryset = Review.objects.all().order_by('-created_at')
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
-
+    permission_classes = [IsAuthenticated, IsSuperUser]
 
 class ReviewStatusToggleView(APIView):
     """Admin endpoint to toggle review approval status."""
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsSuperUser]
 
     def post(self, request, pk):
         try:
             with transaction.atomic():
                 review = Review.objects.select_for_update().get(pk=pk)
                 review.is_approved = not review.is_approved
-                review.save(update_fields=['is_approved'])
-                return Response(ReviewSerializer(review).data)
+                review.save()
+                return Response({'status': 'success', 'is_approved': review.is_approved})
         except Review.DoesNotExist:
             return Response({'detail': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 # ─── Analytics ────────────────────────────────────────────────────────────────
 
-from django.db.models import Count
-from django.db.models.functions import TruncDay
-
 class AdminAnalyticsView(APIView):
     """Admin endpoint for system-wide activity analytics."""
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsSuperUser]
 
     def get(self, request):
-        # Daily logins for last 30 days
-        logins = UserActivity.objects.filter(activity_type='login') \
+        total_users = User.objects.count()
+        daily_logins = UserActivity.objects.filter(activity_type='login') \
             .annotate(day=TruncDay('timestamp')) \
             .values('day') \
             .annotate(count=Count('id')) \
             .order_by('-day')[:30]
             
-        logouts = UserActivity.objects.filter(activity_type='logout') \
+        daily_logouts = UserActivity.objects.filter(activity_type='logout') \
             .annotate(day=TruncDay('timestamp')) \
             .values('day') \
             .annotate(count=Count('id')) \
@@ -584,8 +592,9 @@ class AdminAnalyticsView(APIView):
         } for log in recent_logs]
             
         return Response({
-            'logins': list(logins),
-            'logouts': list(logouts),
+            'total_users': total_users,
+            'daily_logins': list(daily_logins),
+            'daily_logouts': list(daily_logouts),
             'detailed_logs': detailed_logs
         })
 
@@ -595,4 +604,11 @@ class LogoutView(APIView):
     
     def post(self, request):
         UserActivity.objects.create(user=request.user, activity_type='logout')
+        refresh_token = request.data.get('refresh_token')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                pass # Ignore if token is invalid or already blacklisted
         return Response({'detail': 'Logged out activity recorded.'})
