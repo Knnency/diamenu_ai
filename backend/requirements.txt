@@ -11,3 +11,5 @@ pyotp==2.9.0
 qrcode==8.2
 
 google-genai
+django-storages
+google-cloud-storage

@@ -9,6 +9,9 @@ from google import genai
 from google.genai import types
 import json
 import base64
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+import uuid
 
 class AIRateThrottle(UserRateThrottle):
     scope = 'ai_requests'
@@ -255,9 +258,20 @@ class GenerateImageView(APIView):
                 return Response({'detail': 'No image generated'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
             image = response.generated_images[0]
-            encoded_image = base64.b64encode(image.image.image_bytes).decode('utf-8')
-            
-            return Response({'image': f"data:{image.image.mime_type};base64,{encoded_image}"})
+
+            if settings.DEBUG:
+                # Local development: return base64
+                encoded_image = base64.b64encode(image.image.image_bytes).decode('utf-8')
+                return Response({'image': f"data:{image.image.mime_type};base64,{encoded_image}"})
+
+            else:
+                # Production: upload to GCS and return URL
+                file_name = f"recipe-images/{uuid.uuid4()}.png"
+                image_file = ContentFile(image.image.image_bytes)
+                path = default_storage.save(file_name, image_file)
+                url = default_storage.url(path)
+                return Response({'image': url})
+
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
