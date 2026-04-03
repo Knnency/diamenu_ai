@@ -15,7 +15,7 @@ class AIRateThrottle(UserRateThrottle):
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 MODEL_NAME = "gemini-3-flash-preview"
-IMAGE_MODEL_NAME = "gemini-2.0-flash-preview-image-generation"
+IMAGE_MODEL_NAME = "imagen-4.0-generate-001"
 
 class EvaluateWeeklyPlanView(APIView):
     permission_classes = [IsAuthenticated]
