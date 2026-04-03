@@ -308,3 +308,103 @@ class RecipeChatView(APIView):
             return Response({'text': response.text})
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CheckTopicView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIRateThrottle]
+
+    def post(self, request):
+        message = request.data.get('message')
+        if not message:
+            return Response({'detail': 'Message is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        system_instruction = (
+            "You are a topic classifier for a diabetes-friendly cooking assistant called 'Doc Chef'.\n"
+            "Your ONLY job is to decide whether the user's message is related to ANY of these topics:\n"
+            "- Food, cooking, or recipes\n"
+            "- Nutrition or dietary needs\n"
+            "- Diabetes-friendly meals or ingredients\n"
+            "- Meal planning or food swaps\n"
+            "- Specific dishes, cuisines, or food ingredients\n"
+            f"User message: \"{message}\"\n"
+            "Respond with a single JSON object: { \"on_topic\": true } if it IS related, or { \"on_topic\": false } if it is NOT related (e.g. web browsing, coding, general knowledge, news, etc.)."
+        )
+        
+        schema = {
+            "type": "OBJECT",
+            "properties": {
+                "on_topic": {"type": "BOOLEAN"}
+            }
+        }
+
+        try:
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=message,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    response_mime_type="application/json",
+                    response_schema=schema,
+                    temperature=0.1,
+                )
+            )
+            text = response.text
+            if not text:
+                return Response({'detail': 'No response from AI'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            text = text.replace('```json', '').replace('```', '').strip()
+            return Response(json.loads(text))
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SmartSwapView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIRateThrottle]
+
+    def post(self, request):
+        prompt = request.data.get('prompt')
+        if not prompt:
+            return Response({'detail': 'Prompt is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        schema = {
+            "type": "OBJECT",
+            "properties": {
+                "message": {
+                    "type": "STRING",
+                    "description": "A friendly message explaining the smart swaps made based on the user's profile."
+                },
+                "recipes": {
+                    "type": "ARRAY",
+                    "items": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "title": {"type": "STRING"},
+                            "description": {"type": "STRING"},
+                            "tags": {"type": "ARRAY", "items": {"type": "STRING"}},
+                            "ingredients": {"type": "ARRAY", "items": {"type": "STRING"}},
+                            "preparation": {"type": "ARRAY", "items": {"type": "STRING"}},
+                            "instructions": {"type": "ARRAY", "items": {"type": "STRING"}}
+                        }
+                    }
+                }
+            }
+        }
+
+        try:
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=schema,
+                    temperature=0.7,
+                )
+            )
+            text = response.text
+            if not text:
+                return Response({'detail': 'No response from AI'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            text = text.replace('```json', '').replace('```', '').strip()
+            return Response(json.loads(text))
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

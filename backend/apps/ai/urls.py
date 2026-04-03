@@ -4,7 +4,9 @@ from .views import (
     AuditRecipeView,
     ExtractLabResultsView,
     GenerateImageView,
-    RecipeChatView
+    RecipeChatView,
+    CheckTopicView,
+    SmartSwapView
 )
 
 urlpatterns = [
@@ -13,4 +15,6 @@ urlpatterns = [
     path('extract-labs/', ExtractLabResultsView.as_view(), name='extract-labs'),
     path('generate-image/', GenerateImageView.as_view(), name='generate-image'),
     path('recipe-chat/', RecipeChatView.as_view(), name='recipe-chat'),
+    path('check-topic/', CheckTopicView.as_view(), name='check-topic'),
+    path('smart-swap/', SmartSwapView.as_view(), name='smart-swap'),
 ]
