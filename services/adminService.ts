@@ -67,8 +67,8 @@ export interface DetailedActivity {
 }
 
 export interface LoginLogoutStats {
-    logins: { day: string; count: number }[];
-    logouts: { day: string; count: number }[];
+    daily_logins: { day: string; count: number }[];
+    daily_logouts: { day: string; count: number }[];
     detailed_logs: DetailedActivity[];
 }
 

@@ -70,8 +70,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
   ];
 
   // Prepare chart data
-  const chartData = analyticsData?.logins.map(login => {
-    const logout = analyticsData.logouts.find(l => l.day === login.day);
+  const chartData = (analyticsData?.daily_logins || []).map(login => {
+    const logout = (analyticsData?.daily_logouts || []).find(l => l.day === login.day);
     return {
       day: new Date(login.day).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
       logins: login.count,
