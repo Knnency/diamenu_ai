@@ -205,7 +205,6 @@ class PasswordResetRequestView(APIView):
         PasswordResetOTP.objects.create(user=user, otp=otp_code)
 
         # Send email
-        print(f"DEBUG: Password Reset OTP for {email}: {otp_code}")
         try:
             subject = 'DiaMenu — Your Password Reset OTP'
             text_content = (
@@ -310,12 +309,12 @@ class SendRegistrationOTPView(APIView):
         if not email:
             return Response({'detail': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if user already exists
-        if User.objects.filter(email=email).exists():
+        # Check if user already exists and is active
+        if User.objects.filter(email=email, is_active=True).exists():
             # Return generic success to prevent email enumeration
             return Response({'detail': 'Verification code sent successfully.'}, status=status.HTTP_200_OK)
 
-        # Create a temporary user record for OTP (will be activated after verification)
+        # Create or retrieve temporary user record for OTP (will be activated after verification)
         user, created = User.objects.get_or_create(
             email=email,
             defaults={'name': email.split('@')[0], 'is_active': False}
@@ -329,7 +328,6 @@ class SendRegistrationOTPView(APIView):
         RegistrationOTP.objects.create(user=user, otp=otp_code)
 
         # Send email
-        print(f"DEBUG: Registration OTP for {email}: {otp_code}")
         try:
             subject = 'DiaMenu — Your Registration Verification Code'
             text_content = (

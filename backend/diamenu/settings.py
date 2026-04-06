@@ -5,11 +5,6 @@ import base64
 import json
 from google.oauth2 import service_account
 
-# --- VERSION HEARTBEAT ---
-print("🚀 [SERVER BOOT] DiaMenu Backend Version: RESEND_V2_DEBUG")
-print(f"📧 [EMAIL HOST] Targeted: {os.environ.get('EMAIL_HOST', 'smtp.resend.com')}")
-print(f"🔑 [EMAIL KEY] Length: {len(os.environ.get('RESEND_API_KEY', ''))}")
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Load the unified root .env (one level above backend/)
 load_dotenv(BASE_DIR.parent / '.env')
