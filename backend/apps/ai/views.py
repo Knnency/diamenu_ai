@@ -16,9 +16,20 @@ import uuid
 class AIRateThrottle(UserRateThrottle):
     scope = 'ai_requests'
 
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
 MODEL_NAME = "gemini-3-flash-preview"
 IMAGE_MODEL_NAME = "imagen-4.0-generate-001"
+
+def get_genai_client():
+    if not getattr(settings, 'GEMINI_API_KEY', None):
+        print("WARNING: GEMINI_API_KEY is not set in settings. AI features will fail.")
+        # Return a dummy client or let it fail gracefully later
+        # We can also just return None and handle it in the views
+        return None
+    try:
+        return genai.Client(api_key=settings.GEMINI_API_KEY)
+    except Exception as e:
+        print(f"WARNING: Failed to initialize GenAI Client: {e}")
+        return None
 
 class EvaluateWeeklyPlanView(APIView):
     permission_classes = [IsAuthenticated]
@@ -57,6 +68,10 @@ class EvaluateWeeklyPlanView(APIView):
         text_prompt = f"Evaluate this meal plan: {json.dumps(plan)}"
 
         try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=text_prompt,
@@ -160,6 +175,10 @@ class AuditRecipeView(APIView):
         text_prompt = f"Audit this recipe/meal for a Type 2 Diabetic patient in the Philippines: {sanitized_input}. Keep your analysis concise and strictly follow the JSON schema."
 
         try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=text_prompt,
@@ -213,6 +232,10 @@ class ExtractLabResultsView(APIView):
             # Decode the base64 string directly
             image_bytes = base64.b64decode(base64_data.split(',')[-1] if ',' in base64_data else base64_data)
             
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=[
@@ -245,6 +268,10 @@ class GenerateImageView(APIView):
             return Response({'detail': 'Prompt is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_images(
                 model=IMAGE_MODEL_NAME,
                 prompt=prompt,
@@ -311,6 +338,10 @@ class RecipeChatView(APIView):
         contents.append(types.Content(role="user", parts=[types.Part.from_text(message)]))
 
         try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=contents,
@@ -352,6 +383,10 @@ class CheckTopicView(APIView):
         }
 
         try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=message,
@@ -405,6 +440,10 @@ class SmartSwapView(APIView):
         }
 
         try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=prompt,
