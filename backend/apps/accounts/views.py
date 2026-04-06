@@ -1,20 +1,17 @@
 import os
-from rest_framework import status, generics
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-import google.oauth2.id_token
-import google.auth.transport.requests
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.core.mail import send_mail
+from django.db import transaction
+from django.db.models.functions import TruncDay
 from django.db.models import Count, Avg, F
+from django.core.mail import send_mail
 from rest_framework import generics, status
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+import google.oauth2.id_token
+import google.auth.transport.requests
 
 from .models import User, UserProfile, UserActivity, RegistrationOTP, PasswordResetOTP, SavedRecipe, Review
 from .tokens import PasswordResetToken, MFAToken
