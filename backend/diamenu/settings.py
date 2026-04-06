@@ -156,6 +156,15 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     
     # --- Google Cloud Storage Settings (Base64 Decoding) ---
+    STORAGES = {
+        "default": {
+            "BACKEND": "diamenu.storages.MediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    # Keep for backwards compatibility if needed
     DEFAULT_FILE_STORAGE = 'diamenu.storages.MediaStorage'
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
