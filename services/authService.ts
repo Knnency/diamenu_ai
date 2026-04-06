@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+import { getMediaUrl, API_BASE } from '../utils/urlUtils';
 
 // --- Token helpers ---
 export const getAccessToken = (): string | null => localStorage.getItem('access_token');
@@ -341,30 +341,43 @@ export const getUserSettings = async (): Promise<UserSettings> => {
   return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
 };
 
-export const updateUserSettings = async (settings: UserSettings): Promise<UserSettings> => {
+export const updateUserSettings = async (settings: UserSettings, file?: File | null): Promise<UserSettings> => {
+  let body: string | FormData;
+  
+  if (file !== undefined) {
+    // We are performing a combined update or explicitly clearing the picture
+    const formData = new FormData();
+    if (file) {
+      formData.append('profile_picture', file);
+    } else {
+      formData.append('profile_picture', ''); // Clear it
+    }
+    
+    // Add all other settings to FormData
+    Object.keys(settings).forEach(key => {
+      const value = (settings as any)[key];
+      if (value !== undefined && value !== null) {
+        if (Array.isArray(value)) {
+          // DRF expects multiple values for same key or a JSON string for some fields
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value.toString());
+        }
+      }
+    });
+    body = formData;
+  } else {
+    // Standard JSON update
+    body = JSON.stringify(settings);
+  }
+
   const res = await apiFetch('/api/auth/profile/', {
     method: 'PUT',
-    body: JSON.stringify(settings),
+    body,
   });
+  
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Failed to update user settings.');
-  return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
-};
-
-export const updateUserProfilePicture = async (file: File | null): Promise<UserSettings> => {
-  const formData = new FormData();
-  if (file) {
-    formData.append('profile_picture', file);
-  } else {
-    formData.append('profile_picture', ''); // To clear it
-  }
-  
-  const res = await apiFetch('/api/auth/profile/', {
-    method: 'PUT',
-    body: formData,
-  });
-  const data = await safeJson(res);
-  if (!res.ok) throw new Error(data.detail || 'Failed to update profile picture.');
   return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
 };
 

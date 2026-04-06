@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserSettings, updateUserProfilePicture, updateUserSettings } from '../../services/authService';
+import { UserSettings, updateUserSettings } from '../../services/authService';
 import { Icons } from '../../constants';
-import { settingsService } from '../../services/settingsService';
+import { getMediaUrl } from '../../utils/urlUtils';
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOpen, onC
   useEffect(() => {
     if (isOpen) {
       setFormData(settings);
-      setPreviewUrl(settings.profile_picture ? `http://127.0.0.1:8000${settings.profile_picture}` : null);
+      setPreviewUrl(getMediaUrl(settings.profile_picture));
       setSelectedFile(null);
       setError(null);
     }
@@ -50,25 +50,26 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOpen, onC
     setError(null);
 
     try {
-      let updatedSettings = { ...formData };
+      // 1. Determine if the file needs updating
+      let fileToUpload: File | null | undefined = undefined;
       
-      // Update profile picture if changed
       if (selectedFile) {
-        updatedSettings = await updateUserProfilePicture(selectedFile);
+        fileToUpload = selectedFile;
       } else if (previewUrl === null && settings.profile_picture) {
-        // Was cleared
-        updatedSettings = await updateUserProfilePicture(null);
+        // Picture was explicitly cleared
+        fileToUpload = null;
       }
 
-      // Update text fields
-      const finalSettings = await settingsService.updateSettings('current', {
-        ...updatedSettings,
+      // 2. Perform Single Atomic Update
+      // This sends everything (Name, Age, Diabetes Type + Picture) in one request
+      const updatedSettings = await updateUserSettings({
+        ...formData,
         name: formData.name,
         age: formData.age,
         diabetes_type: formData.diabetes_type
-      });
+      }, fileToUpload);
 
-      onSuccess(finalSettings);
+      onSuccess(updatedSettings);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');

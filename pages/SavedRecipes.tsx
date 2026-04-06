@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '../constants';
 import { SavedRecipe, getSavedRecipes, deleteSavedRecipe } from '../services/authService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
+import { getMediaUrl } from '../utils/urlUtils';
 
 import RecipePreviewModal from '../components/RecipePreviewModal';
 import { toast } from 'sonner';
@@ -42,9 +43,7 @@ const SavedRecipes: React.FC = () => {
       
       // Recipes now have image_url from the backend
       const recipesWithImages = savedRecipes.map((recipe) => {
-        const imageUrl = recipe.image_url 
-          ? (import.meta.env.DEV ? `http://127.0.0.1:8000${recipe.image_url}` : recipe.image_url) 
-          : `https://picsum.photos/seed/recipe-${recipe.id}/400/300`;
+        const imageUrl = getMediaUrl(recipe.image_url) || `https://picsum.photos/seed/recipe-${recipe.id}/400/300`;
         
         return {
           ...recipe,

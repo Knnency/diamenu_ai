@@ -6,6 +6,7 @@ import MfaSetupModal from './auth/MfaSetupModal';
 import ProfileSettingsModal from '../components/settings/ProfileSettingsModal';
 import MedicalSettingsModal from '../components/settings/MedicalSettingsModal';
 import PreferencesSettingsModal from '../components/settings/PreferencesSettingsModal';
+import { getMediaUrl } from '../utils/urlUtils';
 
 const Settings: React.FC = () => {
   const [formData, setFormData] = useState<UserSettings>({
@@ -33,8 +34,6 @@ const Settings: React.FC = () => {
   const [showPrefModal, setShowPrefModal] = useState(false);
   const [showMfaModal, setShowMfaModal] = useState(false);
   const [isDisableMfaMode, setIsDisableMfaMode] = useState(false);
-
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
   useEffect(() => {
     loadUserSettings();
@@ -89,7 +88,7 @@ const Settings: React.FC = () => {
     );
   }
 
-  const pictureUrl = formData.profile_picture ? `${API_BASE}${formData.profile_picture}` : null;
+  const pictureUrl = getMediaUrl(formData.profile_picture);
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">

@@ -3,10 +3,11 @@ from django.db import transaction
 from django.db.models.functions import TruncDay
 from django.db.models import Count, Avg, F
 from django.core.mail import send_mail
-from rest_framework import generics, status
+from rest_framework import generics, status, parsers
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -81,6 +82,7 @@ class LoginView(TokenObtainPairView):
 class ProfileView(APIView):
     """Retrieve or update user profile."""
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
         user = request.user
@@ -90,7 +92,10 @@ class ProfileView(APIView):
         return response
 
     def put(self, request):
-        # Use select_for_update to prevent race conditions and optimize query
+        print(f"DEBUG: Profile update received for {request.user.email}")
+        print(f"DEBUG: Request Data Keys: {list(request.data.keys())}")
+        print(f"DEBUG: Request Files: {list(request.FILES.keys())}")
+
         with transaction.atomic():
             profile, created = UserProfile.objects.select_for_update().get_or_create(
                 user=request.user,
@@ -101,36 +106,30 @@ class ProfileView(APIView):
                 }
             )
             
-            # Extract and update name if present in the payload
+            # 1. Update Name
             name = request.data.get('name')
-            if name is not None and name.strip() != '':
+            if name is not None:
                 request.user.name = name.strip()
                 request.user.save(update_fields=['name'])
                 
-            # Handle profile picture upload with safety checks
+            # 2. Handle Profile Picture
             try:
                 if 'profile_picture' in request.FILES:
+                    print(f"DEBUG: Processing file: {request.FILES['profile_picture'].name}")
                     request.user.profile_picture = request.FILES['profile_picture']
                     request.user.save(update_fields=['profile_picture'])
                 elif 'profile_picture' in request.data and not request.data['profile_picture']:
-                    # Allow clearing the picture by sending empty profile_picture
+                    print("DEBUG: Clearing profile picture")
                     request.user.profile_picture = None
                     request.user.save(update_fields=['profile_picture'])
             except Exception as e:
-                # Log the error but don't crash the whole profile update if just the picture fails
-                print(f"Error uploading profile picture to GCS: {str(e)}")
-                # We continue so at least the name/settings can still be saved
+                print(f"ERROR: Profile picture upload error: {str(e)}")
             
-            # Only update changed fields for better performance
-            try:
-                serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-            except Exception as e:
-                print(f"Error saving user profile data: {str(e)}")
-                raise
+            # 3. Update Profile Settings via Serializer
+            serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
             
-        # Return the full UserSerializer data to match the GET format
         return Response(UserSerializer(request.user).data)
 
 

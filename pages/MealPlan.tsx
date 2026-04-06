@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { evaluateWeeklyPlan } from '../services/geminiService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
 import { getSavedRecipes, SavedRecipe } from '../services/authService';
+import { getMediaUrl } from '../utils/urlUtils';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -187,9 +188,7 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
     let previewData: BaseRecipe;
     
     if (found) {
-      const imageUrl = found.image_url 
-        ? (import.meta.env.DEV ? `http://127.0.0.1:8000${found.image_url}` : found.image_url) 
-        : `https://picsum.photos/seed/recipe-${found.id}/400/300`;
+      const imageUrl = getMediaUrl(found.image_url) || `https://picsum.photos/seed/recipe-${found.id}/400/300`;
       previewData = { ...found, imageUrl };
     } else {
       const imageUrl = `https://picsum.photos/seed/recipe-${mealName.replace(/\s+/g, '-')}/400/300`;
