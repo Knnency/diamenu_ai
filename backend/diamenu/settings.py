@@ -137,20 +137,11 @@ SIMPLE_JWT = {
 }
 
 # --- CORS Settings ---
-if DEBUG:
-    # Allow all origins in development so any localhost/LAN IP works
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://diamenu.online",
-        "https://www.diamenu.online",
-    ]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = False
 
 # Allow Google OAuth popups to communicate with the opener window
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
-CORS_ALLOW_CREDENTIALS = True
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # --- Security Settings (Mitigate T-04) ---
 if not DEBUG:
@@ -174,7 +165,12 @@ if not DEBUG:
     gcp_sa_key_json = os.environ.get('GCP_SA_KEY')
     if gcp_sa_key_json:
         try:
-            gcp_sa_credentials = json.loads(gcp_sa_key_json)
+            try:
+                import base64
+                decoded = base64.b64decode(gcp_sa_key_json).decode('utf-8')
+                gcp_sa_credentials = json.loads(decoded)
+            except Exception:
+                gcp_sa_credentials = json.loads(gcp_sa_key_json)
             GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gcp_sa_credentials)
             GS_PROJECT_ID = gcp_sa_credentials.get('project_id')
         except Exception as e:

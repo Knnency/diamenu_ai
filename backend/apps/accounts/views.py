@@ -17,7 +17,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, UserProfile, UserActivity, RegistrationOTP, PasswordResetOTP, SavedRecipe, Review
-from .tokens import PasswordResetToken
+from .tokens import PasswordResetToken, MFAToken
 from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer, CustomTokenObtainPairSerializer, SavedRecipeSerializer, AdminUserSerializer, ReviewSerializer
 from .throttles import OTPSendThrottle, OTPVerifyThrottle
 from .permissions import IsSuperUser
