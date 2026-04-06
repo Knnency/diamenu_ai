@@ -94,10 +94,6 @@ class ProfileView(APIView):
         return response
 
     def put(self, request):
-        print(f"DEBUG: Profile update received for {request.user.email}")
-        print(f"DEBUG: Request Data Keys: {list(request.data.keys())}")
-        print(f"DEBUG: Request Files: {list(request.FILES.keys())}")
-
         with transaction.atomic():
             profile, created = UserProfile.objects.select_for_update().get_or_create(
                 user=request.user,
@@ -117,11 +113,9 @@ class ProfileView(APIView):
             # 2. Handle Profile Picture
             try:
                 if 'profile_picture' in request.FILES:
-                    print(f"DEBUG: Processing file: {request.FILES['profile_picture'].name}")
                     request.user.profile_picture = request.FILES['profile_picture']
                     request.user.save(update_fields=['profile_picture'])
                 elif 'profile_picture' in request.data and not request.data['profile_picture']:
-                    print("DEBUG: Clearing profile picture")
                     request.user.profile_picture = None
                     request.user.save(update_fields=['profile_picture'])
             except Exception as e:
