@@ -414,7 +414,7 @@ class SavedRecipeListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class SavedRecipeDetailView(generics.RetrieveDestroyAPIView):
+class SavedRecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Retrieve or delete a specific saved recipe."""
     serializer_class = SavedRecipeSerializer
     permission_classes = [IsAuthenticated]

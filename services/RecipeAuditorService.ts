@@ -144,19 +144,26 @@ export class RecipeAuditorService {
 
   public async saveRecipe(recipe: RecipeIdea): Promise<RecipeIdea> {
     try {
-      // Import the saveRecipe function from authService
-      const { saveRecipe } = await import('./authService');
+      // Import the save functions from authService
+      const { saveRecipe, updateSavedRecipeImageUrl } = await import('./authService');
       const { RecipeImageServiceAI } = await import('./RecipeImageServiceAI');
       
-      const imageService = new RecipeImageServiceAI();
-      const imageUrl = await imageService.generateRecipeImage(recipe.title, recipe.description, recipe.tags);
+      // 1. Save the recipe data immediately without waiting for the image
+      const savedRecipe = await saveRecipe(recipe, this.settings);
       
-      const recipeToSave = {
-        ...recipe,
-        image_url: imageUrl
-      };
+      // 2. Start image generation in the background (fire and forget)
+      (async () => {
+        try {
+          const imageService = new RecipeImageServiceAI();
+          const imageUrl = await imageService.generateRecipeImage(recipe.title, recipe.description, recipe.tags);
+          if (imageUrl) {
+            await updateSavedRecipeImageUrl(savedRecipe.id, imageUrl);
+          }
+        } catch (bgError) {
+          console.warn("Background recipe image generation/update failed:", bgError);
+        }
+      })();
       
-      const savedRecipe = await saveRecipe(recipeToSave, this.settings);
       return savedRecipe;
     } catch (error) {
       console.error("Error saving recipe:", error);

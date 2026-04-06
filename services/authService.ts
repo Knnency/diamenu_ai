@@ -304,6 +304,16 @@ export const getSavedRecipes = async (): Promise<SavedRecipe[]> => {
   return data.results || data;
 };
 
+export const updateSavedRecipeImageUrl = async (id: string | number, imageUrl: string): Promise<SavedRecipe> => {
+  const res = await apiFetch(`/api/auth/saved-recipes/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ image_url: imageUrl }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.detail || 'Failed to update recipe image.');
+  return data;
+};
+
 export const deleteSavedRecipe = async (recipeId: number): Promise<void> => {
   const res = await apiFetch(`/api/auth/saved-recipes/${recipeId}/`, {
     method: 'DELETE',
