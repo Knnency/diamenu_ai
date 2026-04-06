@@ -155,12 +155,24 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # --- Google Cloud Storage Settings ---
-    # django-storages will automatically use the GCP_SA_KEY environment variable
-    # in the Cloud Run environment. No manual decoding is required.
+    # --- Google Cloud Storage Settings (Base64 Decoding) ---
     DEFAULT_FILE_STORAGE = 'diamenu.storages.MediaStorage'
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
+
+    gcp_sa_key_json = os.environ.get('GCP_SA_KEY')
+    if gcp_sa_key_json:
+        try:
+            try:
+                import base64
+                decoded = base64.b64decode(gcp_sa_key_json).decode('utf-8')
+                gcp_sa_credentials = json.loads(decoded)
+            except Exception:
+                gcp_sa_credentials = json.loads(gcp_sa_key_json)
+            GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gcp_sa_credentials)
+            GS_PROJECT_ID = gcp_sa_credentials.get('project_id')
+        except Exception as e:
+            print(f"Notice: Could not decode GCP_SA_KEY. Falling back to default identity. {e}")
 
 # --- Email Settings ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
