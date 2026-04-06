@@ -459,3 +459,121 @@ class SmartSwapView(APIView):
             return Response(json.loads(text))
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GenerateHealthAdviceView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIRateThrottle]
+
+    def post(self, request):
+        logs = request.data.get('logs', [])
+        user_profile = request.data.get('userProfile')
+
+        if not logs or not user_profile:
+            return Response({'detail': 'Logs and user profile are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile_context = (
+            f"User Profile:\n"
+            f"- Age: {user_profile.get('age', 'N/A')}\n"
+            f"- Diabetes Type: {user_profile.get('type', 'N/A')}\n"
+            f"- Key Medical Info: HbA1c: {user_profile.get('hba1c', 'N/A')}, Fasting Glucose: {user_profile.get('fbs', 'N/A')}"
+        )
+
+        system_instruction = (
+            "You are a compassionate and knowledgeable diabetes care assistant.\n"
+            "Analyze the provided blood sugar logs and the user's profile.\n"
+            "Provide a short (2-3 sentences), encouraging, and actionable piece of advice based on the data.\n"
+            "Focus on trends, potential causes for highs or lows, and suggest a simple, positive next step.\n"
+            "Keep the tone friendly and supportive."
+        )
+
+        try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=f"{profile_context}\n\nRecent Blood Sugar Logs:\n{json.dumps(logs)}\n\nBased on this, what is one piece of advice for the user?",
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.7,
+                )
+            )
+            return Response({'advice': response.text})
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GenerateGroceryListView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIRateThrottle]
+
+    def post(self, request):
+        plan = request.data.get('plan')
+        saved_recipes = request.data.get('savedRecipes', [])
+
+        if not plan:
+            return Response({'detail': 'Plan is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        system_instruction = (
+            "You are an expert nutritionist and grocery planner for a diabetic patient in the Philippines.\n"
+            "You will receive a list of upcoming meals along with their ingredients (if known).\n"
+            "1. Extract and combine all raw ingredients needed to cook these meals over the week.\n"
+            "2. Consolidate duplicates (e.g. if two recipes need Garlic, combine their quantities).\n"
+            "3. Categorize them into standard grocery aisles (Produce, Meat, Dairy, Pantry, Spices, etc).\n"
+            "4. MUST Flag any ingredient that has a High Glycemic Index (isHighGI: true), like white rice, sugar, white bread, pasta, potatoes, etc.\n"
+            "Return ONLY a valid JSON array of objects with keys: name, category, quantity, isHighGI."
+        )
+
+        schema = {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "name": {"type": "STRING"},
+                    "category": {"type": "STRING"},
+                    "quantity": {"type": "STRING"},
+                    "isHighGI": {"type": "BOOLEAN"}
+                },
+                "required": ["name", "category", "quantity", "isHighGI"]
+            }
+        }
+
+        # Context Recipes Mapping
+        meal_names = []
+        for day in plan.values():
+            for meal in day.values():
+                if meal and meal != '-':
+                    meal_names.append(meal)
+
+        context_recipes = []
+        for meal in meal_names:
+            found = next((r for r in saved_recipes if r.get('title') == meal), None)
+            if found:
+                context_recipes.append({'title': found.get('title'), 'ingredients': found.get('ingredients')})
+            else:
+                context_recipes.append({'title': meal})
+
+        try:
+            client = get_genai_client()
+            if not client:
+                return Response({'detail': 'AI is not configured.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=f"Generate a consolidated grocery list for these planned meals:\n{json.dumps(context_recipes)}",
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    response_mime_type="application/json",
+                    response_schema=schema,
+                    temperature=0.1,
+                )
+            )
+            
+            text = response.text
+            if not text:
+                return Response({'detail': 'No response from AI'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            text = text.replace('```json', '').replace('```', '').strip()
+            return Response(json.loads(text))
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

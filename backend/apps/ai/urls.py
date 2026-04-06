@@ -6,7 +6,9 @@ from .views import (
     GenerateImageView,
     RecipeChatView,
     CheckTopicView,
-    SmartSwapView
+    SmartSwapView,
+    GenerateHealthAdviceView,
+    GenerateGroceryListView
 )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path('recipe-chat/', RecipeChatView.as_view(), name='recipe-chat'),
     path('check-topic/', CheckTopicView.as_view(), name='check-topic'),
     path('smart-swap/', SmartSwapView.as_view(), name='smart-swap'),
+    path('health-advice/', GenerateHealthAdviceView.as_view(), name='health-advice'),
+    path('grocery-list/', GenerateGroceryListView.as_view(), name='grocery-list'),
 ]

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { BloodSugarLog } from '../types';
+import { BloodSugarLog, UserProfile } from '../types';
 import { getBloodSugarLogs, saveBloodSugarLog, deleteBloodSugarLog } from '../services/bloodSugarService';
 import { generateHealthAdvice } from '../services/geminiService';
+import { getUserSettings } from '../services/authService';
 import { Icons } from '../constants';
 import { toast } from 'sonner';
 
 const Dashboard: React.FC = () => {
   const [logs, setLogs] = useState<BloodSugarLog[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,11 +29,31 @@ const Dashboard: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const dbLogs = await getBloodSugarLogs();
+      const [dbLogs, settings] = await Promise.all([
+        getBloodSugarLogs(),
+        getUserSettings()
+      ]);
       setLogs(dbLogs);
+      
+      // Map UserSettings to UserProfile
+      const profile: UserProfile = {
+        name: settings.name || '',
+        age: settings.age || 0,
+        type: settings.diabetes_type as any || 'Type 2',
+        dietaryPreferences: settings.dietary_preferences,
+        allergens: settings.allergens,
+        diagnosis: settings.diagnosis,
+        medicalDetails: {
+          hba1c: settings.hba1c,
+          fbs: settings.fbs,
+          medications: settings.medications,
+          restrictions: settings.restrictions
+        }
+      };
+      setUserProfile(profile);
     } catch (err: any) {
-      console.error("Failed to fetch logs", err);
-      setError(err.message || "Failed to load blood sugar logs.");
+      console.error("Failed to fetch dashboard data", err);
+      setError(err.message || "Failed to load dashboard data.");
     } finally {
       setIsLoading(false);
     }
@@ -43,21 +65,21 @@ const Dashboard: React.FC = () => {
 
   // Effect to handle AI Advice generation when logs change
   useEffect(() => {
-    if (isLoading) return; // Wait for initial fetch
+    if (isLoading || !userProfile) return; // Wait for initial fetch
 
     // Check if the number of logs has changed or we don't have advice yet explicitly
     if (logs.length > 0 && (logs.length !== prevLogsRef.current || !aiAdvice)) {
       prevLogsRef.current = logs.length; // Update the ref
-      fetchAiAdvice(logs);
+      fetchAiAdvice(logs, userProfile);
     } else if (logs.length === 0) {
       setAiAdvice("No blood sugar data yet. Log your first reading to get personalized advice!");
     }
-  }, [logs, isLoading]);
+  }, [logs, isLoading, userProfile]);
 
-  const fetchAiAdvice = async (currentLogs: BloodSugarLog[]) => {
+  const fetchAiAdvice = async (currentLogs: BloodSugarLog[], profile: UserProfile) => {
     setIsAiLoading(true);
     try {
-      const advice = await generateHealthAdvice(currentLogs);
+      const advice = await generateHealthAdvice(currentLogs, profile);
       setAiAdvice(advice);
     } catch (err) {
       console.error("Failed to generate AI advice", err);
