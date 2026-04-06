@@ -54,7 +54,9 @@ jobs:
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-            DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}
+            EMAIL_HOST_USER=resend
+            EMAIL_HOST_PASSWORD=${{ secrets.RESEND_API_KEY }}
+            DEFAULT_FROM_EMAIL=noreply@diamenu.online
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
