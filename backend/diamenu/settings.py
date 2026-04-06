@@ -141,7 +141,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = False
 
 # Allow Google OAuth popups to communicate with the opener window
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 # --- Security Settings (Mitigate T-04) ---
 if not DEBUG:
