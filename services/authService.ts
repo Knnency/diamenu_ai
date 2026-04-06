@@ -418,7 +418,7 @@ export const getAdminReviews = async (): Promise<Review[]> => {
   return data.results || data;
 };
 
-export const toggleReviewStatus = async (reviewId: number): Promise<Review> => {
+export const toggleReviewStatus = async (reviewId: number): Promise<{ status: string; is_approved: boolean }> => {
   const res = await apiFetch(`/api/auth/admin/reviews/${reviewId}/toggle/`, {
     method: 'POST',
   });

@@ -24,9 +24,9 @@ const AdminReviews: React.FC = () => {
 
     const handleToggleStatus = async (id: number) => {
         try {
-            const updatedReview = await toggleReviewStatus(id);
-            setReviews(reviews.map(r => r.id === id ? updatedReview : r));
-            toast.success(`Review ${updatedReview.is_approved ? 'approved' : 'hidden'}`);
+            const result = await toggleReviewStatus(id);
+            setReviews(reviews.map(r => r.id === id ? { ...r, is_approved: result.is_approved } : r));
+            toast.success(`Review ${result.is_approved ? 'approved' : 'hidden'}`);
         } catch (err: any) {
             toast.error(err.message || 'Failed to update review status');
         }
