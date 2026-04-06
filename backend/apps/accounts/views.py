@@ -2,7 +2,9 @@ import os
 from django.db import transaction
 from django.db.models.functions import TruncDay
 from django.db.models import Count, Avg, F
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.conf import settings
 from rest_framework import generics, status, parsers
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -210,20 +212,24 @@ class PasswordResetRequestView(APIView):
 
         # Send email
         try:
-            send_mail(
-                subject='DiaMenu — Your Password Reset OTP',
-                message=(
-                    f'Hello {user.name},\n\n'
-                    f'Your one-time password (OTP) to reset your DiaMenu password is:\n\n'
-                    f'    {otp_code}\n\n'
-                    f'This OTP is valid for 10 minutes. Do not share it with anyone.\n\n'
-                    f'If you did not request a password reset, you can safely ignore this email.\n\n'
-                    f'— The DiaMenu Team'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
+            subject = 'DiaMenu — Your Password Reset OTP'
+            text_content = (
+                f'Hello {user.name},\n\n'
+                f'Your one-time password (OTP) to reset your DiaMenu password is: {otp_code}\n\n'
+                f'This OTP is valid for 10 minutes. Do not share it with anyone.\n\n'
+                f'— The DiaMenu Team'
             )
+            html_content = render_to_string('emails/otp_email.html', {
+                'name': user.name,
+                'otp_code': otp_code,
+                'greeting': 'Your one-time password (OTP) to reset your DiaMenu password is:'
+            })
+            
+            msg = EmailMultiAlternatives(
+                subject, text_content, settings.DEFAULT_FROM_EMAIL, [email]
+            )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
         except Exception as e:
             return Response(
                 {'detail': f'Failed to send OTP email. Please check your email settings. Error: {str(e)}'},
@@ -329,20 +335,24 @@ class SendRegistrationOTPView(APIView):
 
         # Send email
         try:
-            send_mail(
-                subject='DiaMenu — Your Registration Verification Code',
-                message=(
-                    f'Hello!\n\n'
-                    f'Your one-time verification code for DiaMenu registration is:\n\n'
-                    f'    {otp_code}\n\n'
-                    f'This code is valid for 10 minutes. Please enter it on the registration page to complete your account creation.\n\n'
-                    f'If you did not request this registration, you can safely ignore this email.\n\n'
-                    f'— The DiaMenu Team'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
+            subject = 'DiaMenu — Your Registration Verification Code'
+            text_content = (
+                f'Hello!\n\n'
+                f'Your one-time verification code for DiaMenu registration is: {otp_code}\n\n'
+                f'This code is valid for 10 minutes.\n\n'
+                f'— The DiaMenu Team'
             )
+            html_content = render_to_string('emails/otp_email.html', {
+                'name': '!',
+                'otp_code': otp_code,
+                'greeting': 'Your one-time verification code for DiaMenu registration is:'
+            })
+            
+            msg = EmailMultiAlternatives(
+                subject, text_content, settings.DEFAULT_FROM_EMAIL, [email]
+            )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
         except Exception as e:
             return Response(
                 {'detail': f'Failed to send verification email. Please check your email settings. Error: {str(e)}'},
