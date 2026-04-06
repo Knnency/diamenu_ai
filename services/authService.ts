@@ -30,9 +30,23 @@ export const logout = async () => {
   localStorage.removeItem('user');
 };
 
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (value?: unknown) => void, reject: (reason?: any) => void }> = [];
+
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // --- Base fetch with auth ---
 const apiFetch = async (path: string, options: RequestInit = {}) => {
-  const token = getAccessToken();
+  let token = getAccessToken();
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
   };
@@ -46,9 +60,25 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
   let res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   
   // Handle Token Refresh on 401 Unauthorized
+  const originalRequest = { path, options, headers };
+  
   if (res.status === 401 && path !== '/api/auth/token/refresh/' && path !== '/api/auth/login/' && path !== '/api/auth/register/') {
+    if (isRefreshing) {
+      // Wait for the ongoing refresh to finish
+      try {
+        const newToken = await new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        });
+        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+        return await fetch(`${API_BASE}${originalRequest.path}`, { ...originalRequest.options, headers: originalRequest.headers });
+      } catch (err) {
+        return res; // Original 401
+      }
+    }
+
     const refresh = getRefreshToken();
     if (refresh) {
+      isRefreshing = true;
       try {
         const refreshRes = await fetch(`${API_BASE}/api/auth/token/refresh/`, {
           method: 'POST',
@@ -64,20 +94,27 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
           
           if (newAccess && user) {
              storeTokens(newAccess, newRefresh, user);
-             headers['Authorization'] = `Bearer ${newAccess}`;
+             processQueue(null, newAccess);
+             
+             originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
              // Retry original request
-             res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+             res = await fetch(`${API_BASE}${originalRequest.path}`, { ...originalRequest.options, headers: originalRequest.headers });
           } else {
+             processQueue(new Error('Missing tokens'));
              logout();
              window.location.href = '/login';
           }
         } else {
+          processQueue(new Error('Refresh failed'));
           logout();
           window.location.href = '/login';
         }
       } catch (err) {
+        processQueue(err as Error);
         logout();
         window.location.href = '/login';
+      } finally {
+        isRefreshing = false;
       }
     } else {
       logout();
