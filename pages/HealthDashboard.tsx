@@ -67,20 +67,49 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (isLoading || !userProfile) return; // Wait for initial fetch
 
-    // Check if the number of logs has changed or we don't have advice yet explicitly
-    if (logs.length > 0 && (logs.length !== prevLogsRef.current || !aiAdvice)) {
-      prevLogsRef.current = logs.length; // Update the ref
-      fetchAiAdvice(logs, userProfile);
-    } else if (logs.length === 0) {
+    const cacheKey = `health_advice_${userProfile.name.replace(/\s+/g, '_')}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    let cachedAdvice = null;
+    let cachedLogFingerprint = null;
+
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        cachedAdvice = parsed.advice;
+        cachedLogFingerprint = parsed.fingerprint;
+      } catch (e) {
+        console.error("Failed to parse health advice cache");
+      }
+    }
+
+    // Create a fingerprint of the current logs (just the concatenation of IDs)
+    const currentFingerprint = logs.map(l => l.id).join(',');
+
+    // Logic to decide whether to trigger AI or use cache
+    if (logs.length > 0) {
+      if (currentFingerprint !== cachedLogFingerprint) {
+        // Data has changed, trigger fresh AI advice
+        fetchAiAdvice(logs, userProfile, cacheKey, currentFingerprint);
+      } else if (cachedAdvice) {
+        // Data is the same, use cached advice
+        setAiAdvice(cachedAdvice);
+      } else {
+        // No cache available, trigger AI
+        fetchAiAdvice(logs, userProfile, cacheKey, currentFingerprint);
+      }
+    } else {
       setAiAdvice("No blood sugar data yet. Log your first reading to get personalized advice!");
     }
   }, [logs, isLoading, userProfile]);
 
-  const fetchAiAdvice = async (currentLogs: BloodSugarLog[], profile: UserProfile) => {
+  const fetchAiAdvice = async (currentLogs: BloodSugarLog[], profile: UserProfile, cacheKey: string, fingerprint: string) => {
     setIsAiLoading(true);
     try {
       const advice = await generateHealthAdvice(currentLogs, profile);
       setAiAdvice(advice);
+      
+      // Save to cache
+      localStorage.setItem(cacheKey, JSON.stringify({ advice, fingerprint }));
     } catch (err) {
       console.error("Failed to generate AI advice", err);
       setAiAdvice("AI Assistant is currently unavailable.");
