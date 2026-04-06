@@ -48,7 +48,7 @@ jobs:
           image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_BACKEND }}:${{ github.sha }}
           flags: |
             --add-cloudsql-instances=diamenu-489712:asia-east1:vetoniodb
-            --update-env-vars=DEBUG=False,CLOUD_SQL_CONNECTION_NAME=diamenu-489712:asia-east1:vetoniodb,DB_NAME=postgres,DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }},SECRET_KEY=${{ secrets.SECRET_KEY }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }},DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }},GS_BUCKET_NAME=${{ secrets.GS_BUCKET_NAME }},GCP_SA_KEY=${{ secrets.GCP_SA_KEY }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            --update-env-vars=DEBUG=False,CLOUD_SQL_CONNECTION_NAME=diamenu-489712:asia-east1:vetoniodb,DB_NAME=postgres,DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},RESEND_API_KEY=${{ secrets.RESEND_API_KEY }},DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }},SECRET_KEY=${{ secrets.SECRET_KEY }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }},DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }},GS_BUCKET_NAME=${{ secrets.GS_BUCKET_NAME }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
 
       # Build and Push Frontend
       - name: Build Frontend Image

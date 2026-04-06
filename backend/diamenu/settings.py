@@ -166,18 +166,16 @@ if not DEBUG:
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
 
-    # Decode GCP_SA_KEY from base64
-    gcp_sa_key_b64 = os.environ.get('GCP_SA_KEY')
-    if gcp_sa_key_b64:
+    # If raw JSON is explicitly provided (e.g., local dev), use it.
+    # Otherwise, django-storages automatically uses Cloud Run's native Application Default Credentials!
+    gcp_sa_key_json = os.environ.get('GCP_SA_KEY')
+    if gcp_sa_key_json:
         try:
-            gcp_sa_key_json = base64.b64decode(gcp_sa_key_b64).decode('utf-8')
             gcp_sa_credentials = json.loads(gcp_sa_key_json)
             GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gcp_sa_credentials)
             GS_PROJECT_ID = gcp_sa_credentials.get('project_id')
-        except (base64.binascii.Error, json.JSONDecodeError, ValueError) as e:
-            print(f"ERROR: Could not decode GCP_SA_KEY. Check your GitHub secret. {e}")
-            GS_CREDENTIALS = None
-            GS_PROJECT_ID = None
+        except Exception as e:
+            print(f"Notice: Could not decode GCP_SA_KEY as JSON. Falling back to default identity. {e}")
 
 # --- Email Settings ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
