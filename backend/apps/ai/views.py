@@ -214,20 +214,24 @@ class ExtractLabResultsView(APIView):
 
         system_instruction = (
             "You are a medical data extraction assistant.\n"
-            "Extract the following lab results from the provided image:\n"
+            "Analyze the provided image and determine if it is a valid medical lab result or diagnosis document.\n"
+            "If it IS a valid medical document, extract the following lab results:\n"
             "1. HbA1c Level (%)\n"
             "2. Fasting Blood Sugar or Fasting Plasma Glucose (mg/dL)\n"
             "3. Total Cholesterol (mg/dL)\n"
-            "Return ONLY a valid JSON object. If a value is not found, return an empty string. Only extract the numerical values and units."
+            "If it is NOT a medical document (e.g., a random photo, a person, a landscape, etc.), set 'is_valid_document' to false.\n"
+            "Return ONLY a valid JSON object."
         )
 
         schema = {
             "type": "OBJECT",
             "properties": {
+                "is_valid_document": {"type": "BOOLEAN"},
                 "hba1c": {"type": "STRING"},
                 "fbs": {"type": "STRING"},
                 "total_cholesterol": {"type": "STRING"}
-            }
+            },
+            "required": ["is_valid_document"]
         }
 
         try:

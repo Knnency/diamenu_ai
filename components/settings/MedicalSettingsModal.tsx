@@ -56,11 +56,17 @@ const MedicalSettingsModal: React.FC<MedicalSettingsModalProps> = ({ isOpen, onC
         const base64Data = (reader.result as string).split(',')[1];
         try {
           const results = await extractLabResultsFromImage(base64Data, file.type);
+          
+          if (results.is_valid_document === false) {
+            setError('This image does not appear to be a valid medical lab result. Please upload a clear document.');
+            return;
+          }
+
           setFormData(prev => ({
             ...prev,
-            hba1c: results.hba1c || prev.hba1c,
-            fbs: results.fbs || prev.fbs,
-            total_cholesterol: results.total_cholesterol || prev.total_cholesterol
+            hba1c: (results.hba1c && results.hba1c !== '') ? results.hba1c : prev.hba1c,
+            fbs: (results.fbs && results.fbs !== '') ? results.fbs : prev.fbs,
+            total_cholesterol: (results.total_cholesterol && results.total_cholesterol !== '') ? results.total_cholesterol : prev.total_cholesterol
           }));
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Failed to extract data from image.');

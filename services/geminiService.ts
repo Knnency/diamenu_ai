@@ -61,7 +61,7 @@ export const auditRecipeWithAI = async (recipeInput: string, userProfile?: UserP
   }
 };
 
-export const extractLabResultsFromImage = async (base64Data: string, mimeType: string): Promise<{ hba1c: string, fbs: string, total_cholesterol: string }> => {
+export const extractLabResultsFromImage = async (base64Data: string, mimeType: string): Promise<{ is_valid_document?: boolean, hba1c: string, fbs: string, total_cholesterol: string }> => {
   try {
     const res = await fetch(`${API_BASE}/api/ai/extract-labs/`, {
       method: 'POST',
