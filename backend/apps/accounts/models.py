@@ -35,7 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     mfa_enabled = models.BooleanField(default=False)
 
     # Profile integration
-    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True, storage=default_storage if not settings.DEBUG else None)
+    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
 
     objects = UserManager()
 

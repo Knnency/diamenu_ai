@@ -156,7 +156,8 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     
     # --- Google Cloud Storage Settings ---
-    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    DEFAULT_FILE_STORAGE = 'diamenu.storages.MediaStorage'
+    # GS_BUCKET_NAME is read in storages.py
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
 
@@ -186,4 +187,6 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'your-email@gmail.com')
 
 # AI Settings
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', os.environ.get('VITE_GEMINI_API_KEY', ))
+# In production, Cloud Run will provide this via GitHub secrets
+# The name VITE_GEMINI_API_KEY is used to match the existing GitHub secret
+GEMINI_API_KEY = os.environ.get('VITE_GEMINI_API_KEY', '')

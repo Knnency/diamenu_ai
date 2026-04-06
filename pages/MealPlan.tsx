@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { evaluateWeeklyPlan } from '../services/geminiService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
 import { getSavedRecipes, SavedRecipe } from '../services/authService';
-import { recipeImageServiceAI } from '../services/RecipeImageServiceAI';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -78,21 +77,22 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
     const fetchPlanAndRecipes = async () => {
       setIsLoading(true);
       try {
-        const savedPlan = await getMealPlan();
+        const [savedPlan, allSavedRecipes] = await Promise.all([
+          getMealPlan(),
+          getSavedRecipes()
+        ]);
         setPlan(savedPlan);
-      } catch (err: any) {
-        if (err.message !== 'PLAN_NOT_FOUND') {
-          console.error("Failed to load meal plan:", err);
-          setError("Failed to load your latest meal plan.");
-        }
-      }
-      try {
-        const allSavedRecipes = await getSavedRecipes();
         setSavedRecipes(allSavedRecipes);
-      } catch (err) {
-        console.error("Failed to load saved recipes:", err);
+      } catch (err: any) {
+        if (err.message === 'PLAN_NOT_FOUND') {
+          // It's okay if a plan doesn't exist, we'll use the default
+        } else {
+          console.error("Failed to load data:", err);
+          setError("Failed to load your latest meal plan or saved recipes.");
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchPlanAndRecipes();
   }, []);
@@ -182,24 +182,17 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
     }
   };
 
-  const handlePreview = async (mealName: string) => {
-    setIsPreviewLoading(mealName);
+  const handlePreview = (mealName: string) => {
     const found = savedRecipes.find(r => r.title === mealName);
     let previewData: BaseRecipe;
     
     if (found) {
-      let imageUrl = `https://picsum.photos/seed/recipe-${found.id}/400/300`;
-      try {
-        imageUrl = await recipeImageServiceAI.generateRecipeImage(found.title, found.description, found.tags);
-
-      } catch(e) {}
+      const imageUrl = found.image_url 
+        ? (import.meta.env.DEV ? `http://127.0.0.1:8000${found.image_url}` : found.image_url) 
+        : `https://picsum.photos/seed/recipe-${found.id}/400/300`;
       previewData = { ...found, imageUrl };
     } else {
-      let imageUrl = `https://picsum.photos/seed/recipe-${mealName.replace(/\s+/g, '-')}/400/300`;
-      try {
-        imageUrl = await recipeImageServiceAI.generateRecipeImage(mealName, mealName, []);
-
-      } catch(e) {}
+      const imageUrl = `https://picsum.photos/seed/recipe-${mealName.replace(/\s+/g, '-')}/400/300`;
       previewData = {
         id: mealName,
         title: mealName,

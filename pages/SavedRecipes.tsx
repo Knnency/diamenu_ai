@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '../constants';
 import { SavedRecipe, getSavedRecipes, deleteSavedRecipe } from '../services/authService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
-import { recipeImageServiceAI } from '../services/RecipeImageServiceAI';
 
 import RecipePreviewModal from '../components/RecipePreviewModal';
 import { toast } from 'sonner';
@@ -42,12 +41,18 @@ const SavedRecipes: React.FC = () => {
       const savedRecipes = await getSavedRecipes();
       
       // Recipes now have image_url from the backend
-      const recipesWithImages = savedRecipes.map((recipe) => ({
-        ...recipe,
-        imageUrl: recipe.image_url || `https://picsum.photos/seed/recipe-${recipe.id}/400/300`,
-        isImageLoading: false,
-        imageError: false
-      }));
+      const recipesWithImages = savedRecipes.map((recipe) => {
+        const imageUrl = recipe.image_url 
+          ? (import.meta.env.DEV ? `http://127.0.0.1:8000${recipe.image_url}` : recipe.image_url) 
+          : `https://picsum.photos/seed/recipe-${recipe.id}/400/300`;
+        
+        return {
+          ...recipe,
+          imageUrl,
+          isImageLoading: false,
+          imageError: false
+        };
+      });
       
       setRecipes(recipesWithImages);
     } catch (err) {
@@ -82,22 +87,13 @@ const SavedRecipes: React.FC = () => {
   };
 
   const handleRetryImage = async (recipe: RecipeWithImage) => {
-    try {
-      const newImageUrl = await recipeImageServiceAI.generateRecipeImage(
-
-        recipe.title,
-        recipe.description,
-        recipe.tags
-      );
-      
-      setRecipes(prev => prev.map(r => 
-        r.id === recipe.id 
-          ? { ...r, imageUrl: newImageUrl, imageError: false }
-          : r
-      ));
-    } catch (err) {
-      console.error('Failed to retry image generation:', err);
-    }
+    // This function is now only for placeholder fallbacks, not regeneration
+    // In the future, we could add a DB update here to persist the new image
+    setRecipes(prev => prev.map(r => 
+      r.id === recipe.id 
+        ? { ...r, imageUrl: `https://picsum.photos/seed/retry-${recipe.id}/400/300`, imageError: false }
+        : r
+    ));
   };
 
   const handlePreviewRecipe = (recipe: RecipeWithImage) => {
