@@ -61,10 +61,11 @@ jobs:
             DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
             GS_BUCKET_NAME=${{ secrets.GS_BUCKET_NAME }}
             VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}
-            GCP_SA_KEY=${{ secrets.GCP_SA_KEY }}
           flags: |
             --add-cloudsql-instances=diamenu-489712:asia-east1:vetoniodb
             --allow-unauthenticated
+          secrets:
+            GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}:latest
 
       # Build and Push Frontend
       - name: Build Frontend Image
