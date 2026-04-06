@@ -150,24 +150,32 @@ class GoogleLoginView(APIView):
             return Response({'detail': f'Google token verification failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
         email = id_info.get('email')
+        if not email:
+            return Response({'detail': 'Google token did not contain an email.'}, status=status.HTTP_400_BAD_REQUEST)
+            
         name = id_info.get('name', email.split('@')[0])
 
-        user, created = User.objects.get_or_create(email=email, defaults={'name': name})
-        if created:
-            user.set_unusable_password()
-            user.save()
-            UserProfile.objects.create(user=user)
+        try:
+            user, created = User.objects.get_or_create(email=email, defaults={'name': name})
+            if created:
+                user.set_unusable_password()
+                user.save()
+                UserProfile.objects.create(user=user)
 
-        refresh = RefreshToken.for_user(user)
-        
-        # Log successful login
-        UserActivity.objects.create(user=user, activity_type='login')
+            refresh = RefreshToken.for_user(user)
+            
+            # Log successful login
+            UserActivity.objects.create(user=user, activity_type='login')
 
-        return Response({
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'user': UserSerializer(user).data,
-        })
+            return Response({
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': UserSerializer(user).data,
+            })
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            return Response({'detail': f'Server error during Google Login: {str(e)}', 'trace': error_trace}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ─── Password Reset via OTP ───────────────────────────────────────────────────
