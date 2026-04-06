@@ -65,7 +65,7 @@ jobs:
             --add-cloudsql-instances=diamenu-489712:asia-east1:vetoniodb
             --allow-unauthenticated
           secrets:
-            GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}:latest
+            GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
 
       # Build and Push Frontend
       - name: Build Frontend Image
