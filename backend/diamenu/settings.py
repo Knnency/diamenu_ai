@@ -174,4 +174,5 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'your-email@gmail.com'
 # AI Settings
 # In production, Cloud Run will provide this via GitHub secrets
 # The name VITE_GEMINI_API_KEY is used to match the existing GitHub secret
+# Triggering new deployment to update secrets
 GEMINI_API_KEY = os.environ.get('VITE_GEMINI_API_KEY', '')
