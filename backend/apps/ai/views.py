@@ -17,7 +17,7 @@ class AIRateThrottle(UserRateThrottle):
     scope = 'ai_requests'
 
 MODEL_NAME = "gemini-3-flash-preview"
-IMAGE_MODEL_NAME = "gemini-2.5-flash-preview-image" # Nano Banana
+IMAGE_MODEL_NAME = "imagen-4.0-fast-generate-001" # Imagen 4 Fast Generate
 
 def get_genai_client():
     api_key = getattr(settings, 'GEMINI_API_KEY', None)
