@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 import random
 import string
 
@@ -170,3 +172,31 @@ class UserActivity(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.activity_type} at {self.timestamp}"
+
+
+# --- SIGNALS FOR IMAGE CLEANUP ---
+
+@receiver(post_delete, sender=SavedRecipe)
+def delete_recipe_image_on_delete(sender, instance, **kwargs):
+    """Deletes the AI-generated recipe image from storage when the recipe is deleted."""
+    if instance.image_url:
+        try:
+            # Only attempt to delete if it's a URL in our bucket
+            if settings.GS_BUCKET_NAME in instance.image_url:
+                # Extract the path from the URL. Example: recipe-images/unique-id.png
+                # URLs from GCS usually look like: https://storage.googleapis.com/bucket-name/path/to/file
+                path = instance.image_url.split(f"{settings.GS_BUCKET_NAME}/")[-1]
+                if default_storage.exists(path):
+                    default_storage.delete(path)
+        except Exception as e:
+            print(f"Failed to delete recipe image {instance.image_url}: {e}")
+
+@receiver(post_delete, sender=User)
+def delete_profile_picture_on_delete(sender, instance, **kwargs):
+    """Deletes the user's profile picture from storage when the account is deleted."""
+    if instance.profile_picture:
+        try:
+            # ImageField's .delete(save=False) handles this cleanly
+            instance.profile_picture.delete(save=False)
+        except Exception as e:
+            print(f"Failed to delete profile picture for {instance.email}: {e}")
