@@ -1,57 +1,32 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { AuditResult, UserProfile } from "../types";
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-const ai = new GoogleGenAI({ apiKey });
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
-const modelName = "gemini-3-flash-preview";
-
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('access_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
 
 export const evaluateWeeklyPlan = async (plan: Record<string, Record<string, string>>): Promise<Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>>> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
-
-  const systemInstruction = `
-    You are a strict Endocrinologist evaluating a 7-day meal plan for a diabetic patient in the Philippines.
-    For each meal provided, evaluate if it is 'good', 'warning', or 'bad' for a diabetic based on glycemic index and sugar content.
-    Provide a short 1-sentence reason for your evaluation.
-    Return ONLY a JSON object matching the structure of the input plan, where the value for each meal is an object with 'status' and 'reason'.
-  `;
-
-  const schema = {
-    type: Type.OBJECT,
-    properties: {
-      Mon: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
-      Tue: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
-      Wed: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
-      Thu: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
-      Fri: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
-      Sat: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } },
-      Sun: { type: Type.OBJECT, properties: { Breakfast: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Lunch: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Dinner: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } }, Snack: { type: Type.OBJECT, properties: { status: { type: Type.STRING }, reason: { type: Type.STRING } } } } }
-    }
-  };
-
-  const textPrompt = `Evaluate this meal plan: ${JSON.stringify(plan)}`;
-
   try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: textPrompt,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        temperature: 0.2,
-      }
+    const res = await fetch(`${API_BASE}/api/ai/evaluate-plan/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ plan })
     });
-
-    let text = response.text;
-    if (!text) throw new Error("No response from AI");
-
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(text) as Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>>;
+    
+    if (!res.ok) {
+      if (res.status === 429) {
+        throw new Error('Too many requests. Please wait a moment and try again.');
+      }
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Failed to evaluate plan');
+    }
+    
+    return await res.json();
   } catch (error) {
     console.error("Gemini Evaluation Error:", error);
     throw error;
@@ -63,97 +38,27 @@ export const auditRecipeWithAI = async (recipeInput: string, userProfile?: UserP
     throw new Error("API Key is missing.");
   }
 
-  let profileContext = "";
-  if (userProfile) {
-    profileContext = `
-      User Profile Context:
-      - Age: ${userProfile.age}
-      - Diabetes Type: ${userProfile.type}
-      - Dietary Preferences: ${userProfile.dietaryPreferences.join(', ') || 'None'}
-      - Allergens: ${userProfile.allergens.join(', ') || 'None'}
-      - Medical Restrictions: ${userProfile.medicalDetails?.restrictions || 'None'}
-      
-      CRITICAL: You MUST strictly adhere to the user's allergens and dietary preferences. Do not suggest any ingredients they are allergic to.
-    `;
+  // Mitigation for T-02: AI Prompt Injection length limits
+  if (recipeInput.length > 2000) {
+    throw new Error("Recipe input is too long. Please limit to 2000 characters.");
   }
 
-  const systemInstruction = `
-    You are DiaMenu's core engine, a dual-agent system designed to help Filipino diabetics manage their diet.
-    
-    Agent 1: The Doctor (Endocrinologist)
-    - Strict, focuses on glycemic index, sugar content, and long-term health risks.
-    - Identifies "red flags" in ingredients (e.g., white rice, refined sugar, excessive sodium).
-    
-    Agent 2: The Chef (Filipino Home Cook)
-    - Creative, practical, and culturally aware.
-    - Suggests realistic "Smart Swaps" available in a typical Philippines 'palengke' or supermarket.
-    - Focuses on flavor preservation while lowering GI.
-    - Suggests Adlai, Brown Rice, Cauliflower Rice, Stevia, Monkfruit, Tofu, Monggo, Malunggay, etc.
-
-    ${profileContext}
-
-    Your Output MUST be strictly valid JSON matching the schema provided.
-  `;
-
-  const schema = {
-    type: Type.OBJECT,
-    properties: {
-      safetyScore: { type: Type.NUMBER, description: "0 to 100, where 100 is perfectly safe for a diabetic." },
-      portionWeight: { type: Type.STRING, description: "Estimated total portion weight or serving size (e.g., '250g', '1 bowl (300g)')." },
-      ingredientsList: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of all identified ingredients in the food." },
-      doctorAnalysis: {
-        type: Type.OBJECT,
-        properties: {
-          verdict: { type: Type.STRING, description: "A short professional verdict (e.g., 'High Risk', 'Moderate', 'Approved')." },
-          concerns: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of specific health concerns." },
-          glycemicIndexEstimate: { type: Type.STRING, description: "Estimated GI (Low/Medium/High)." }
-        }
-      },
-      chefSwaps: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            originalIngredient: { type: Type.STRING },
-            suggestedSwap: { type: Type.STRING },
-            reason: { type: Type.STRING },
-            localContext: { type: Type.STRING, description: "Where to buy or how it fits Filipino cuisine." }
-          }
-        }
-      },
-      nutritionalInfo: {
-        type: Type.OBJECT,
-        properties: {
-          calories: { type: Type.NUMBER },
-          carbs: { type: Type.NUMBER },
-          protein: { type: Type.NUMBER },
-          fat: { type: Type.NUMBER }
-        }
-      }
-    }
-  };
-
-  const textPrompt = `Audit this recipe/meal for a Type 2 Diabetic patient in the Philippines: ${recipeInput}. Keep your analysis concise and strictly follow the JSON schema.`;
-
   try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: textPrompt,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        temperature: 0.2,
-      }
+    const res = await fetch(`${API_BASE}/api/ai/audit-recipe/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ recipeInput, userProfile })
     });
-
-    let text = response.text;
-    if (!text) throw new Error("No response from AI");
-
-    // Clean up markdown code blocks if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(text) as AuditResult;
+    
+    if (!res.ok) {
+      if (res.status === 429) {
+        throw new Error('Too many requests. Please wait a moment and try again.');
+      }
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Failed to audit recipe');
+    }
+    
+    return await res.json();
   } catch (error) {
     console.error("Gemini Audit Error:", error);
     throw error;
@@ -161,53 +66,24 @@ export const auditRecipeWithAI = async (recipeInput: string, userProfile?: UserP
 };
 
 export const extractLabResultsFromImage = async (base64Data: string, mimeType: string): Promise<{ hba1c: string, fbs: string, total_cholesterol: string }> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
-
-  const systemInstruction = `
-    You are a medical data extraction assistant.
-    Extract the following lab results from the provided image:
-    1. HbA1c Level (%)
-    2. Fasting Blood Sugar or Fasting Plasma Glucose (mg/dL)
-    3. Total Cholesterol (mg/dL)
-
-    Return ONLY a valid JSON object. If a value is not found, return an empty string. Only extract the numerical values and units.
-  `;
-
-  const schema = {
-    type: Type.OBJECT,
-    properties: {
-      hba1c: { type: Type.STRING, description: "HbA1c Level, e.g., '7.2%'" },
-      fbs: { type: Type.STRING, description: "Fasting Blood Sugar / Fasting Plasma Glucose, e.g., '120 mg/dL'" },
-      total_cholesterol: { type: Type.STRING, description: "Total Cholesterol, e.g., '180 mg/dL'" }
-    }
-  };
-
   try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [
-        { inlineData: { data: base64Data, mimeType: mimeType } },
-        { text: "Extract the lab results from this image." }
-      ],
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        temperature: 0.1,
-      }
+    const res = await fetch(`${API_BASE}/api/ai/extract-labs/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ base64Data, mimeType })
     });
-
-    let text = response.text;
-    if (!text) throw new Error("No response from AI");
-
-    // Clean up markdown code blocks if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(text) as { hba1c: string, fbs: string, total_cholesterol: string };
+    
+    if (!res.ok) {
+      if (res.status === 429) {
+        throw new Error('Too many requests. Please wait a moment and try again.');
+      }
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Failed to extract lab results');
+    }
+    
+    return await res.json();
   } catch (error) {
-    console.error("Gemini Extraction Error:", error);
+    console.error("Lab Extraction Error:", error);
     throw error;
   }
 };

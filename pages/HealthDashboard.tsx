@@ -10,15 +10,15 @@ const Dashboard: React.FC = () => {
   const [logs, setLogs] = useState<BloodSugarLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const prevLogsRef = useRef<number>(0);
-  
+
   const [newLog, setNewLog] = useState<Partial<BloodSugarLog>>({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
-    value: 100,
+    value: ' ',
     context: 'Fasting',
     notes: ''
   });
@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
   // Effect to handle AI Advice generation when logs change
   useEffect(() => {
     if (isLoading) return; // Wait for initial fetch
-    
+
     // Check if the number of logs has changed or we don't have advice yet explicitly
     if (logs.length > 0 && (logs.length !== prevLogsRef.current || !aiAdvice)) {
       prevLogsRef.current = logs.length; // Update the ref
@@ -112,12 +112,12 @@ const Dashboard: React.FC = () => {
   const handleDeleteLog = async (id: string | number) => {
     try {
       await deleteBloodSugarLog(id);
-      
+
       const updatedLogs = logs.filter(log => log.id !== id);
       setLogs(updatedLogs);
     } catch (err: any) {
-       console.error("Failed to delete log:", err);
-       toast.error(err.message || 'Failed to delete reading. Please try again.');
+      console.error("Failed to delete log:", err);
+      toast.error(err.message || 'Failed to delete reading. Please try again.');
     }
   };
 
@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
         {/* Chart Section */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Blood Sugar Trends</h2>
-          
+
           {logs.length > 0 ? (
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -186,29 +186,29 @@ const Dashboard: React.FC = () => {
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis 
-                    dataKey="displayDate" 
-                    tick={{ fontSize: 12, fill: '#6B7280' }} 
+                  <XAxis
+                    dataKey="displayDate"
+                    tick={{ fontSize: 12, fill: '#6B7280' }}
                     tickFormatter={(value) => value.split(',')[0]} // Just show date
                     minTickGap={30}
                   />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: '#6B7280' }} 
+                  <YAxis
+                    tick={{ fontSize: 12, fill: '#6B7280' }}
                     domain={['dataMin - 20', 'dataMax + 20']}
                     label={{ value: 'mg/dL', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6B7280', fontSize: 12 } }}
                   />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
                     labelStyle={{ fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '20px' }} />
                   <ReferenceLine y={70} stroke="#EF4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Low (70)', fill: '#EF4444', fontSize: 10 }} />
                   <ReferenceLine y={180} stroke="#F59E0B" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'High Target (180)', fill: '#F59E0B', fontSize: 10 }} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    name="Blood Sugar (mg/dL)" 
-                    stroke="#0EA5E9" 
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    name="Blood Sugar (mg/dL)"
+                    stroke="#0EA5E9"
                     strokeWidth={3}
                     activeDot={{ r: 8, fill: '#0EA5E9', stroke: '#fff', strokeWidth: 2 }}
                     dot={{ r: 4, fill: '#0EA5E9', strokeWidth: 0 }}
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
         {/* Log Form Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex flex-col">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Log Reading</h2>
-          
+
           <form onSubmit={handleAddLog} className="space-y-4 flex-grow">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -344,7 +344,7 @@ const Dashboard: React.FC = () => {
                       {log.notes || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
+                      <button
                         onClick={() => handleDeleteLog(log.id)}
                         className="text-red-600 dark:text-red-500 hover:text-red-900 dark:hover:text-red-400"
                       >

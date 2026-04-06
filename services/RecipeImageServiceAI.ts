@@ -1,27 +1,31 @@
-import { GoogleGenAI } from "@google/genai";
 import { recipeImageService } from "./RecipeImageService";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
 /**
  * RecipeImageServiceAI
  *
  * PRIMARY: Generates photorealistic food images using Google's Gemini
- *   image generation model (gemini-2.0-flash-preview-image-generation).
- *   Returns a base64 data URL, so it works in any environment without
- *   needing a separate Pixabay API key.
+ *   image generation model via our Django backend proxy.
  *
  * FALLBACK: If AI generation fails, falls back to the Pixabay
- *   RecipeImageService which requires VITE_PIXABAY_API_KEY.
+ *   RecipeImageService.
  */
 export class RecipeImageServiceAI {
-  private ai: GoogleGenAI;
+  private getAuthHeaders() {
+    const token = localStorage.getItem('access_token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+  }
 
   // ✅ Correct model — this is the only Gemini model that outputs images
   // gemini-2.5-flash is a TEXT model and cannot generate images
   private readonly imageModel = "gemini-2.0-flash-preview-image-generation";
 
   constructor() {
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
-    this.ai = new GoogleGenAI({ apiKey });
+    // No initialization needed since we use backend proxy
   }
 
   /**
@@ -64,8 +68,6 @@ export class RecipeImageServiceAI {
   }
 
   /**
-   * Generate a photorealistic food image using Gemini's image generation model.
-   *
    * Returns a base64 data URL (data:image/jpeg;base64,...) that works
    * everywhere — no external image URL dependency.
    *
@@ -76,64 +78,28 @@ export class RecipeImageServiceAI {
     recipeDescription: string,
     tags: string[]
   ): Promise<string> {
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-
-    if (!apiKey) {
-      console.warn(
-        "[RecipeImageServiceAI] VITE_GEMINI_API_KEY not found. Falling back to Pixabay."
-      );
-      return recipeImageService.generateRecipeImage(
-        recipeTitle,
-        recipeDescription,
-        tags
-      );
-    }
-
     try {
       const prompt = this.buildImagePrompt(recipeTitle, tags);
       console.log(`[RecipeImageServiceAI] Generating image for: "${recipeTitle}"`);
-
-      const response = await this.ai.models.generateContent({
-        model: this.imageModel,
-        contents: prompt,
-        config: {
-          // NOTE: responseModalities MUST include "Image" for image generation
-          responseModalities: ["Image", "Text"],
-          numberOfImages: 1,
-        } as any,
+      
+      const res = await fetch(`${API_BASE}/api/ai/generate-image/`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ prompt })
       });
 
-      // Safely navigate the response to find the image inline data
-      const candidates = (response as any)?.candidates;
-      if (Array.isArray(candidates) && candidates.length > 0) {
-        const parts = candidates[0]?.content?.parts;
-        if (Array.isArray(parts)) {
-          for (const part of parts) {
-            if (part?.inlineData?.data && part?.inlineData?.mimeType) {
-              const { data, mimeType } = part.inlineData;
-              console.log(
-                `[RecipeImageServiceAI] ✅ AI image generated for: "${recipeTitle}" (${mimeType})`
-              );
-              return `data:${mimeType};base64,${data}`;
-            }
-          }
-        }
+      if (!res.ok) {
+        throw new Error(`AI Image API returned status: ${res.status}`);
       }
 
-      // Response came back but had no image — fall back
-      console.warn(
-        `[RecipeImageServiceAI] Response had no image part for "${recipeTitle}". Falling back to Pixabay.`
-      );
-      return recipeImageService.generateRecipeImage(
-        recipeTitle,
-        recipeDescription,
-        tags
-      );
-    } catch (error: any) {
-      console.error(
-        `[RecipeImageServiceAI] Image generation failed for "${recipeTitle}":`,
-        error?.message || error
-      );
+      const data = await res.json();
+      if (!data.image) {
+        throw new Error("No image data returned from AI");
+      }
+
+      return data.image;
+    } catch (error) {
+      console.error("[RecipeImageServiceAI] Gemini image generation failed, falling back to Pixabay:", error);
       return recipeImageService.generateRecipeImage(
         recipeTitle,
         recipeDescription,

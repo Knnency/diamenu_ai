@@ -13,9 +13,18 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  React.useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldown > 0) return;
     setError('');
     setSuccessMessage('');
     setIsLoading(true);
@@ -23,8 +32,14 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }
       await requestPasswordReset(email);
       onOtpSent(email); // pass email up so ResetPassword can use it
       setSuccessMessage(`A 6-digit OTP has been sent to ${email}. Check your inbox.`);
+      setCooldown(60); // Default cooldown after success
     } catch (err: any) {
-      setError(err.message || 'Failed to send OTP. Please try again.');
+      if (err.retryAfter) {
+        setCooldown(err.retryAfter);
+        setError(err.message || 'Please wait before requesting another code.');
+      } else {
+        setError(err.message || 'Failed to send OTP. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +90,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }
             ) : (
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || cooldown > 0}
                 className="group relative flex w-full justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
@@ -86,6 +101,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ changeView, onOtpSent }
                     </svg>
                     Sending OTP...
                   </span>
+                ) : cooldown > 0 ? (
+                  `Send OTP in ${cooldown}s`
                 ) : (
                   'Send OTP'
                 )}

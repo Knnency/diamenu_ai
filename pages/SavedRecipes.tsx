@@ -41,34 +41,13 @@ const SavedRecipes: React.FC = () => {
       
       const savedRecipes = await getSavedRecipes();
       
-      // Enhance recipes with AI-generated images
-      const recipesWithImages = await Promise.all(
-        savedRecipes.map(async (recipe) => {
-          try {
-            const imageUrl = await recipeImageServiceAI.generateRecipeImage(
-
-              recipe.title,
-              recipe.description,
-              recipe.tags
-            );
-            
-            return {
-              ...recipe,
-              imageUrl,
-              isImageLoading: false,
-              imageError: false
-            };
-          } catch (imageError) {
-            console.error('Failed to load image for recipe:', recipe.title, imageError);
-            return {
-              ...recipe,
-              imageUrl: `https://picsum.photos/seed/recipe-${recipe.id}/400/300`,
-              isImageLoading: false,
-              imageError: true
-            };
-          }
-        })
-      );
+      // Recipes now have image_url from the backend
+      const recipesWithImages = savedRecipes.map((recipe) => ({
+        ...recipe,
+        imageUrl: recipe.image_url || `https://picsum.photos/seed/recipe-${recipe.id}/400/300`,
+        isImageLoading: false,
+        imageError: false
+      }));
       
       setRecipes(recipesWithImages);
     } catch (err) {

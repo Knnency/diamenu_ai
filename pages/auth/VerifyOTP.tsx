@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState } from '../../types';
 import { Icons } from '../../constants';
 import { verifyRegistrationOTP, sendRegistrationOTP } from '../../services/authService';
@@ -16,6 +16,14 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
+  const [cooldown, setCooldown] = useState(60);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +47,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
   };
 
   const handleResend = async () => {
+    if (cooldown > 0) return;
     setIsResending(true);
     setResendMessage('');
     setError('');
@@ -50,8 +59,14 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
         await sendRegistrationOTP(email);
       }
       setResendMessage('A new verification code has been sent to your email.');
+      setCooldown(60); // Reset cooldown on successful send
     } catch (err: any) {
-      setError(err.message || 'Failed to resend verification code.');
+      if (err.retryAfter) {
+        setCooldown(err.retryAfter);
+        setError(err.message || 'Please wait before requesting another code.');
+      } else {
+        setError(err.message || 'Failed to resend verification code.');
+      }
     } finally {
       setIsResending(false);
     }
@@ -130,10 +145,10 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ changeView, onVerify, email, onRe
             Didn't receive the code?{' '}
             <button
               onClick={handleResend}
-              disabled={isResending}
+              disabled={isResending || cooldown > 0}
               className="font-medium text-primary hover:text-teal-700 dark:text-accent dark:hover:text-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isResending ? 'Sending...' : 'Resend Code'}
+              {isResending ? 'Sending...' : cooldown > 0 ? `Resend Code in ${cooldown}s` : 'Resend Code'}
             </button>
           </p>
         </div>

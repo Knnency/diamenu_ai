@@ -14,9 +14,13 @@ const storeTokens = (access: string, refresh: string, user: object) => {
 };
 export const logout = async () => {
   const token = getAccessToken();
+  const refresh = getRefreshToken();
   if (token) {
     try {
-      await apiFetch('/api/auth/logout/', { method: 'POST' });
+      await apiFetch('/api/auth/logout/', { 
+        method: 'POST',
+        body: JSON.stringify({ refresh_token: refresh })
+      });
     } catch (err) {
       console.warn('Silent logout recording failed');
     }
@@ -131,6 +135,11 @@ export const sendRegistrationOTP = async (email: string) => {
   });
   const data = await safeJson(res);
   if (!res.ok) {
+    if (res.status === 429) {
+      const match = data.detail?.match(/available in (\d+) seconds/);
+      const retryAfter = match ? parseInt(match[1]) : 60;
+      throw { message: data.detail || 'Too many requests.', retryAfter };
+    }
     throw new Error(data.detail || 'Failed to send verification code.');
   }
   return data;
@@ -166,8 +175,13 @@ export const requestPasswordReset = async (email: string) => {
     method: 'POST',
     body: JSON.stringify({ email }),
   });
+  const data = await safeJson(res);
   if (!res.ok) {
-    const data = await res.json();
+    if (res.status === 429) {
+      const match = data.detail?.match(/available in (\d+) seconds/);
+      const retryAfter = match ? parseInt(match[1]) : 60;
+      throw { message: data.detail || 'Too many requests.', retryAfter };
+    }
     throw new Error(data.detail || 'Failed to send reset email.');
   }
   return true;
@@ -199,6 +213,7 @@ export interface RecipeIdea {
   title: string;
   tags: string[];
   description: string;
+  image_url?: string;
   ingredients?: string[];
   preparation?: string[];
   instructions?: string[];
@@ -226,6 +241,7 @@ export const saveRecipe = async (recipe: RecipeIdea, settings: {
     body: JSON.stringify({
       title: recipe.title,
       description: recipe.description,
+      image_url: recipe.image_url,
       tags: recipe.tags,
       ingredients: recipe.ingredients || [],
       preparation: recipe.preparation || [],

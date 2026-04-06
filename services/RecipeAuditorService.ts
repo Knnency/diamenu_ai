@@ -1,5 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile } from '../types';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
 export interface ChatMessage {
   id: string;
@@ -12,6 +13,7 @@ export interface RecipeIdea {
   title: string;
   tags: string[];
   description: string;
+  image_url?: string;
   ingredients?: string[];
   preparation?: string[];
   instructions?: string[];
@@ -26,70 +28,71 @@ export interface RecipeSettings {
 }
 
 export class RecipeAuditorService {
-  private ai: GoogleGenAI | null = null;
   private userProfile: UserProfile;
   private settings: RecipeSettings;
 
   constructor(userProfile: UserProfile, settings: RecipeSettings) {
     this.userProfile = userProfile;
     this.settings = settings;
-    this.initializeAI();
   }
 
-  private initializeAI(): void {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (apiKey) {
-      this.ai = new GoogleGenAI({ apiKey });
+  private getAuthHeaders() {
+    const token = localStorage.getItem('access_token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+  }
+
+  /**
+   * Checks whether the user's message is related to food, cooking, nutrition,
+   * recipes, or diabetes-friendly diet topics.
+   */
+  private async isOnTopic(userInput: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/check-topic/`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ message: userInput })
+      });
+      if (!res.ok) return true; // fail open
+      const data = await res.json();
+      return data.on_topic === true;
+    } catch {
+      return true; // fail open on error
     }
   }
 
   public async generateSmartSwapRecipe(userInput: string): Promise<{ message: string; recipes: RecipeIdea[] }> {
-    if (!this.ai) {
-      throw new Error("AI service not initialized - missing API key");
+    // --- Out-of-context guard ---
+    const onTopic = await this.isOnTopic(userInput);
+    if (!onTopic) {
+      return {
+        message:
+          "Oops! That's a bit outside my kitchen! I'm Doc Chef, your personal cooking and nutrition assistant. " +
+          "I can help you with recipes, smart ingredient swaps, diabetes-friendly meal ideas, and more. " +
+          "Try asking me something like \"What can I make with chicken?\" or \"Give me a low-carb Filipino dish\".",
+        recipes: []
+      };
     }
+    // --- End out-of-context guard ---
 
     const prompt = this.buildSmartSwapPrompt(userInput);
     
     try {
-      const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              message: {
-                type: Type.STRING,
-                description: "A friendly message explaining the smart swaps made based on the user's profile."
-              },
-              recipes: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    title: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    tags: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    preparation: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    instructions: { type: Type.ARRAY, items: { type: Type.STRING } }
-                  },
-                  required: ["title", "description", "tags", "ingredients", "instructions"]
-                }
-              }
-            },
-            required: ["message", "recipes"]
-          }
-        }
+      const res = await fetch(`${API_BASE}/api/ai/smart-swap/`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ prompt })
       });
-
-      const responseText = response.text;
-      if (!responseText) {
-        throw new Error("Empty response from AI service");
+      
+      if (!res.ok) {
+        if (res.status === 429) throw new Error('Too many requests. Please try again later.');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || 'Failed to generate smart swap recipe');
       }
 
-      const parsed = JSON.parse(responseText);
+      const parsed = await res.json();
       if (parsed.recipes && Array.isArray(parsed.recipes)) {
         parsed.recipes = parsed.recipes.map((r: any) => ({
           ...r,
@@ -143,8 +146,17 @@ export class RecipeAuditorService {
     try {
       // Import the saveRecipe function from authService
       const { saveRecipe } = await import('./authService');
+      const { RecipeImageServiceAI } = await import('./RecipeImageServiceAI');
       
-      const savedRecipe = await saveRecipe(recipe, this.settings);
+      const imageService = new RecipeImageServiceAI();
+      const imageUrl = await imageService.generateRecipeImage(recipe.title, recipe.description, recipe.tags);
+      
+      const recipeToSave = {
+        ...recipe,
+        image_url: imageUrl
+      };
+      
+      const savedRecipe = await saveRecipe(recipeToSave, this.settings);
       return savedRecipe;
     } catch (error) {
       console.error("Error saving recipe:", error);
@@ -172,6 +184,31 @@ export class RecipeAuditorService {
     } catch (error) {
       console.error("Error deleting saved recipe:", error);
       throw new Error("Failed to delete saved recipe from database");
+    }
+  }
+
+  /**
+   * Generates a conversational response (e.g., brainstorming, modifying a recipe).
+   */
+  async sendMessage(message: string, history: ChatMessage[], settings: RecipeSettings): Promise<string> {
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/recipe-chat/`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ message, history, settings })
+      });
+      
+      if (!res.ok) {
+        if (res.status === 429) throw new Error('Too many requests. Please try again later.');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || 'Failed to communicate with AI.');
+      }
+      
+      const data = await res.json();
+      return data.text;
+    } catch (error) {
+      console.error("AI Communication Error:", error);
+      throw error;
     }
   }
 }

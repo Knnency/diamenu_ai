@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import base64
+import json
+from google.oauth2 import service_account
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Load the unified root .env (one level above backend/)
@@ -163,6 +166,19 @@ if not DEBUG:
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
 
+    # Decode GCP_SA_KEY from base64
+    gcp_sa_key_b64 = os.environ.get('GCP_SA_KEY')
+    if gcp_sa_key_b64:
+        try:
+            gcp_sa_key_json = base64.b64decode(gcp_sa_key_b64).decode('utf-8')
+            gcp_sa_credentials = json.loads(gcp_sa_key_json)
+            GS_CREDENTIALS = service_account.Credentials.from_service_account_info(gcp_sa_credentials)
+            GS_PROJECT_ID = gcp_sa_credentials.get('project_id')
+        except (base64.binascii.Error, json.JSONDecodeError, ValueError) as e:
+            print(f"ERROR: Could not decode GCP_SA_KEY. Check your GitHub secret. {e}")
+            GS_CREDENTIALS = None
+            GS_PROJECT_ID = None
+
 # --- Email Settings ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
@@ -173,4 +189,4 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'your-email@gmail.com')
 
 # AI Settings
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', os.environ.get('VITE_GEMINI_API_KEY', '))
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', os.environ.get('VITE_GEMINI_API_KEY', ))

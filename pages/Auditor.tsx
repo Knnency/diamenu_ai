@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { Icons } from '../constants';
 import { UserProfile } from '../types';
 import { RecipeAuditorService, RecipeIdea } from '../services/RecipeAuditorService';
@@ -480,7 +479,7 @@ const Auditor: React.FC = () => {
                 <h3 className="font-bold text-gray-900 dark:text-white mb-2">{recipe.title}</h3>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {recipe.tags.map((tag, idx) => (
-                    <span key={`${tag}-${idx}`} className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                    <span key={`${tag}-${idx}`} className="px-2.5 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
                       {tag === 'Soup' ? <Icons.Leaf /> : <Icons.User />} {tag}
                     </span>
                   ))}
