@@ -107,19 +107,28 @@ class ProfileView(APIView):
                 request.user.name = name.strip()
                 request.user.save(update_fields=['name'])
                 
-            # Handle profile picture upload
-            if 'profile_picture' in request.FILES:
-                request.user.profile_picture = request.FILES['profile_picture']
-                request.user.save(update_fields=['profile_picture'])
-            elif 'profile_picture' in request.data and not request.data['profile_picture']:
-                # Allow clearing the picture by sending empty profile_picture
-                request.user.profile_picture = None
-                request.user.save(update_fields=['profile_picture'])
+            # Handle profile picture upload with safety checks
+            try:
+                if 'profile_picture' in request.FILES:
+                    request.user.profile_picture = request.FILES['profile_picture']
+                    request.user.save(update_fields=['profile_picture'])
+                elif 'profile_picture' in request.data and not request.data['profile_picture']:
+                    # Allow clearing the picture by sending empty profile_picture
+                    request.user.profile_picture = None
+                    request.user.save(update_fields=['profile_picture'])
+            except Exception as e:
+                # Log the error but don't crash the whole profile update if just the picture fails
+                print(f"Error uploading profile picture to GCS: {str(e)}")
+                # We continue so at least the name/settings can still be saved
             
             # Only update changed fields for better performance
-            serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            try:
+                serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+            except Exception as e:
+                print(f"Error saving user profile data: {str(e)}")
+                raise
             
         # Return the full UserSerializer data to match the GET format
         return Response(UserSerializer(request.user).data)
