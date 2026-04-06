@@ -159,6 +159,8 @@ if not DEBUG:
     DEFAULT_FILE_STORAGE = 'diamenu.storages.MediaStorage'
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
+    GS_QUERYSTRING_AUTH = False
+    GS_FILE_OVERWRITE = False
 
     gcp_sa_key_json = os.environ.get('GCP_SA_KEY')
     if gcp_sa_key_json:

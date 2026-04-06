@@ -4,22 +4,8 @@ from storages.backends.gcloud import GoogleCloudStorage
 
 class MediaStorage(GoogleCloudStorage):
     """
-    Custom storage class that uses Google Cloud Storage in production
-    and local file system in development.
+    Standard GCS storage for production.
+    In local development (DEBUG=True), DEFAULT_FILE_STORAGE is handled in settings.py.
     """
-    def __init__(self, *args, **kwargs):
-        if settings.DEBUG:
-            self.storage = FileSystemStorage()
-        else:
-            kwargs['bucket_name'] = settings.GS_BUCKET_NAME
-            super().__init__(*args, **kwargs)
-
-    def _save(self, name, content):
-        if settings.DEBUG:
-            return self.storage._save(name, content)
-        return super()._save(name, content)
-
-    def url(self, name):
-        if settings.DEBUG:
-            return self.storage.url(name)
-        return super().url(name)
+    location = 'media'
+    file_overwrite = False
