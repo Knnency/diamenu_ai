@@ -154,6 +154,9 @@ CORS_ALLOW_CREDENTIALS = True
 
 # --- Security Settings (Mitigate T-04) ---
 if not DEBUG:
+    # Trust the X-Forwarded-Proto header from Cloud Run to prevent infinite redirect loops
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
