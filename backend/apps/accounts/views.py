@@ -539,9 +539,11 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsSuperUser]
 
     def perform_destroy(self, instance):
+        from rest_framework.exceptions import ValidationError
         # Prevent admins from deleting themselves
         if instance == self.request.user:
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            raise ValidationError("You cannot delete your own account.")
+        instance.delete()
 
 # ─── Reviews ──────────────────────────────────────────────────────────────────
 
