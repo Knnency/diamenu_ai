@@ -17,16 +17,20 @@ class AIRateThrottle(UserRateThrottle):
     scope = 'ai_requests'
 
 MODEL_NAME = "gemini-3-flash-preview"
-IMAGE_MODEL_NAME = "imagen-4.0-generate-001"
+IMAGE_MODEL_NAME = "gemini-2.5-flash-preview-image" # Nano Banana
 
 def get_genai_client():
-    if not getattr(settings, 'GEMINI_API_KEY', None):
-        print("WARNING: GEMINI_API_KEY is not set in settings. AI features will fail.")
+    api_key = getattr(settings, 'GEMINI_API_KEY', None)
+    if not api_key:
+        print("CRITICAL: GEMINI_API_KEY is not set in Django settings. AI features will fail.")
         return None
+        
     try:
-        return genai.Client(api_key=settings.GEMINI_API_KEY)
+        # Log key metadata to debug Cloud Run environment (without leaking key)
+        print(f"DEBUG: Initializing GenAI Client. Key length: {len(api_key)}. Key starts with: {api_key[:4]}...")
+        return genai.Client(api_key=api_key)
     except Exception as e:
-        print(f"WARNING: Failed to initialize GenAI Client: {e}")
+        print(f"ERROR: Failed to initialize GenAI Client: {e}")
         return None
 
 class EvaluateWeeklyPlanView(APIView):
