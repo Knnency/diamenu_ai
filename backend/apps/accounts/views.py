@@ -205,6 +205,7 @@ class PasswordResetRequestView(APIView):
         PasswordResetOTP.objects.create(user=user, otp=otp_code)
 
         # Send email
+        print(f"DEBUG: Password Reset OTP for {email}: {otp_code}")
         try:
             subject = 'DiaMenu — Your Password Reset OTP'
             text_content = (
@@ -328,6 +329,7 @@ class SendRegistrationOTPView(APIView):
         RegistrationOTP.objects.create(user=user, otp=otp_code)
 
         # Send email
+        print(f"DEBUG: Registration OTP for {email}: {otp_code}")
         try:
             subject = 'DiaMenu — Your Registration Verification Code'
             text_content = (
