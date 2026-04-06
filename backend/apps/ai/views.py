@@ -22,8 +22,6 @@ IMAGE_MODEL_NAME = "imagen-4.0-generate-001"
 def get_genai_client():
     if not getattr(settings, 'GEMINI_API_KEY', None):
         print("WARNING: GEMINI_API_KEY is not set in settings. AI features will fail.")
-        # Return a dummy client or let it fail gracefully later
-        # We can also just return None and handle it in the views
         return None
     try:
         return genai.Client(api_key=settings.GEMINI_API_KEY)
