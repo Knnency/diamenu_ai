@@ -3,6 +3,7 @@ import { evaluateWeeklyPlan } from '../services/geminiService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
 import { getSavedRecipes, SavedRecipe } from '../services/authService';
 import { getMediaUrl } from '../utils/urlUtils';
+import { useMealPlan } from '../contexts/MealPlanContext';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -54,96 +55,47 @@ interface MealPlanProps {
 }
 
 const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
+  const { 
+    plan, 
+    evaluations, 
+    isEvaluating, 
+    isLoading: isPlanLoading, 
+    error: planError,
+    updateMeal,
+    deleteMeal,
+    handleEvaluatePlan
+  } = useMealPlan();
+
   const [activeDay, setActiveDay] = useState('Mon');
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingMeal, setEditingMeal] = useState<{ day: string, type: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [evaluations, setEvaluations] = useState<Record<string, Record<string, { status: 'good' | 'warning' | 'bad', reason: string }>> | null>(null);
 
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
   const [previewRecipe, setPreviewRecipe] = useState<BaseRecipe | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState<string | null>(null);
 
-  // Initial empty or default plan
-  const [plan, setPlan] = useState<Record<string, Record<string, string>>>({
-    'Mon': { 'Breakfast': 'Oatmeal w/ Chia Seeds', 'Lunch': 'Grilled Bangus & Ensalada', 'Dinner': 'Tinola (Chicken Breast, Sayote)', 'Snack': 'Boiled Saba' },
-    'Tue': { 'Breakfast': 'Taho (Less Syrup)', 'Lunch': 'Monggo w/ Malunggay', 'Dinner': 'Adobong Sitaw w/ Tofu', 'Snack': 'Apple Slices' },
-    'Wed': { 'Breakfast': 'Scrambled Egg & Wheat Bread', 'Lunch': 'Sinigang na Hipon', 'Dinner': 'Cauliflower Rice Stir Fry', 'Snack': 'Greek Yogurt' },
-  });
-
   useEffect(() => {
-    const fetchPlanAndRecipes = async () => {
-      setIsLoading(true);
+    const fetchRecipes = async () => {
       try {
-        const [savedPlan, allSavedRecipes] = await Promise.all([
-          getMealPlan(),
-          getSavedRecipes()
-        ]);
-        setPlan(savedPlan);
+        const allSavedRecipes = await getSavedRecipes();
         setSavedRecipes(allSavedRecipes);
       } catch (err: any) {
-        if (err.message === 'PLAN_NOT_FOUND') {
-          // It's okay if a plan doesn't exist, we'll use the default
-        } else {
-          console.error("Failed to load data:", err);
-          setError("Failed to load your latest meal plan or saved recipes.");
-        }
-      } finally {
-        setIsLoading(false);
+        console.error("Failed to load recipes:", err);
       }
     };
-    fetchPlanAndRecipes();
+    fetchRecipes();
   }, []);
 
-  const handleEvaluatePlan = async () => {
-    setIsEvaluating(true);
-    setError(null);
-    try {
-      const result = await evaluateWeeklyPlan(plan);
-      setEvaluations(result);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to evaluate meal plan. Please check your connection or API key.");
-    } finally {
-      setIsEvaluating(false);
-    }
-  };
-
-  const handleEditClick = (day: string, type: string, currentValue: string) => {
-    setEditingMeal({ day, type });
-    setEditValue(currentValue || '');
-  };
+  // Use the error from context if local error is not set
+  const displayError = error || planError;
+  const isLoading = isPlanLoading;
 
   const handleSaveEdit = async () => {
     if (editingMeal) {
-      const updatedPlan = {
-        ...plan,
-        [editingMeal.day]: {
-          ...(plan[editingMeal.day] || {}),
-          [editingMeal.type]: editValue
-        }
-      };
-
       try {
-        await saveMealPlan(updatedPlan);
-        setPlan(updatedPlan);
-        
-        // Clear evaluation for this specific meal if it exists
-        if (evaluations && evaluations[editingMeal.day] && evaluations[editingMeal.day][editingMeal.type]) {
-            setEvaluations(prev => {
-                if (!prev) return prev;
-                const newEvals = { ...prev };
-                if (newEvals[editingMeal.day]) {
-                    newEvals[editingMeal.day] = { ...newEvals[editingMeal.day] };
-                    delete newEvals[editingMeal.day][editingMeal.type];
-                }
-                return newEvals;
-            });
-        }
-        
+        await updateMeal(editingMeal.day, editingMeal.type, editValue);
         setEditingMeal(null);
       } catch (err) {
         console.error("Failed to save edited meal plan:", err);
@@ -152,35 +104,26 @@ const MealPlan: React.FC<MealPlanProps> = ({ changeView }) => {
     }
   };
 
+  const handleDeleteMealClick = async (day: string, type: string) => {
+    try {
+      await deleteMeal(day, type);
+    } catch (err) {
+      console.error("Failed to delete meal:", err);
+      setError("Failed to delete meal.");
+    }
+  };
+
+  const handleEditClick = (day: string, type: string, currentValue: string) => {
+    setEditingMeal({ day, type });
+    setEditValue(currentValue || '');
+  };
+
   const handleCancelEdit = () => {
     setEditingMeal(null);
   };
 
   const handleDeleteMeal = async (day: string, type: string) => {
-    const updatedPlan = {
-      ...plan,
-      [day]: { ...plan[day] }
-    };
-    delete updatedPlan[day][type];
-    
-    try {
-      await saveMealPlan(updatedPlan);
-      setPlan(updatedPlan);
-      if (evaluations && evaluations[day] && evaluations[day][type]) {
-          setEvaluations(prev => {
-              if (!prev) return prev;
-              const newEvals = { ...prev };
-              if (newEvals[day]) {
-                  newEvals[day] = { ...newEvals[day] };
-                  delete newEvals[day][type];
-              }
-              return newEvals;
-          });
-      }
-    } catch (err) {
-      console.error("Failed to delete meal:", err);
-      setError("Failed to delete meal.");
-    }
+    await handleDeleteMealClick(day, type);
   };
 
   const handlePreview = (mealName: string) => {
