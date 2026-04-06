@@ -8,11 +8,11 @@ import { getPantryItems } from '../services/pantryService';
 import { getSavedRecipes } from '../services/authService';
 
 interface UserDashboardProps {
+  user: { name?: string; email?: string } | null;
   changeView: (view: ViewState) => void;
 }
 
-const UserDashboard: React.FC<UserDashboardProps> = ({ changeView }) => {
-  const user = getStoredUser();
+const UserDashboard: React.FC<UserDashboardProps> = ({ user, changeView }) => {
   const firstName = user?.name?.split(' ')[0] || 'User';
 
   const [isLoading, setIsLoading] = useState(true);

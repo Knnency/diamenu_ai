@@ -101,6 +101,13 @@ const App: React.FC = () => {
         setIsLogoutModalOpen(false);
     };
 
+    const handleUserUpdate = () => {
+        const updatedUser = getStoredUser();
+        if (updatedUser) {
+            setUser(updatedUser);
+        }
+    };
+
     React.useEffect(() => {
         const handleTriggerLogout = () => {
             setIsLogoutModalOpen(true);
@@ -111,10 +118,10 @@ const App: React.FC = () => {
 
     const renderView = () => {
         switch (currentView) {
-            case ViewState.HOME: return isAuthenticated ? <UserDashboard changeView={setCurrentView} /> : <Home changeView={setCurrentView} />;
+            case ViewState.HOME: return isAuthenticated ? <UserDashboard user={user} changeView={setCurrentView} /> : <Home changeView={setCurrentView} />;
             case ViewState.AUDITOR: return isAuthenticated ? <Auditor /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.MEAL_PLAN: return isAuthenticated ? <MealPlan changeView={setCurrentView} /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
-            case ViewState.DASHBOARD: return isAuthenticated ? <UserDashboard changeView={setCurrentView} /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.DASHBOARD: return isAuthenticated ? <UserDashboard user={user} changeView={setCurrentView} /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.HEALTH_STATS: return isAuthenticated ? <HealthDashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleRegistrationStart} />;
@@ -126,7 +133,7 @@ const App: React.FC = () => {
             />;
             case ViewState.FORGOT_PASSWORD: return <ForgotPassword changeView={setCurrentView} onOtpSent={setResetEmail} />;
             case ViewState.RESET_PASSWORD: return <ResetPassword changeView={setCurrentView} email={resetEmail} />;
-            case ViewState.SETTINGS: return isAuthenticated ? <Settings /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
+            case ViewState.SETTINGS: return isAuthenticated ? <Settings onUserUpdate={handleUserUpdate} /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.SAVED_RECIPES: return isAuthenticated ? <SavedRecipes /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.PANTRY: return isAuthenticated ? <Pantry /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.TERMS_POLICY: return <TermsAndPolicy changeView={setCurrentView} />;

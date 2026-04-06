@@ -388,7 +388,17 @@ export const updateUserSettings = async (settings: UserSettings, file?: File | n
   
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Failed to update user settings.');
-  return { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
+  
+  const updatedUser = { ...data.profile, email: data.email, name: data.name, mfa_enabled: data.mfa_enabled, profile_picture: data.profile_picture };
+  
+  // Update localStorage to keep it in sync with the backend
+  const currentUser = getStoredUser();
+  if (currentUser) {
+    const newUser = { ...currentUser, ...updatedUser };
+    localStorage.setItem('user', JSON.stringify(newUser));
+  }
+
+  return updatedUser;
 };
 
 // --- Review API calls ---

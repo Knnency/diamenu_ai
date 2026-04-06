@@ -8,7 +8,11 @@ import MedicalSettingsModal from '../components/settings/MedicalSettingsModal';
 import PreferencesSettingsModal from '../components/settings/PreferencesSettingsModal';
 import { getMediaUrl } from '../utils/urlUtils';
 
-const Settings: React.FC = () => {
+interface SettingsProps {
+  onUserUpdate?: () => void;
+}
+
+const Settings: React.FC<SettingsProps> = ({ onUserUpdate }) => {
   const [formData, setFormData] = useState<UserSettings>({
     email: '',
     name: '',
@@ -74,6 +78,7 @@ const Settings: React.FC = () => {
 
   const handleModalSuccess = (updatedSettings: UserSettings) => {
     setFormData(updatedSettings);
+    if (onUserUpdate) onUserUpdate();
   };
 
   if (loading) {
