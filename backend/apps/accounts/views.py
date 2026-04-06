@@ -311,8 +311,10 @@ class SendRegistrationOTPView(APIView):
 
         # Check if user already exists and is active
         if User.objects.filter(email=email, is_active=True).exists():
-            # Return generic success to prevent email enumeration
-            return Response({'detail': 'Verification code sent successfully.'}, status=status.HTTP_200_OK)
+            return Response(
+                {'detail': 'This email is already registered. Please login instead.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Create or retrieve temporary user record for OTP (will be activated after verification)
         user, created = User.objects.get_or_create(
