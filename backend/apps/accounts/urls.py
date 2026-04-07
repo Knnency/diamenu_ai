@@ -1,5 +1,4 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, LoginView, ProfileView, GoogleLoginView,
     PasswordResetRequestView, PasswordResetVerifyOTPView, PasswordResetConfirmView,
@@ -8,7 +7,7 @@ from .views import (
     MFASetupView, MFAVerifySetupView, MFADisableView, MFALoginVerifyView,
     AdminUserListCreateView, AdminUserDetailView,
     ReviewListCreateView, AdminReviewListView, ReviewStatusToggleView,
-    AdminAnalyticsView, LogoutView
+    AdminAnalyticsView, LogoutView, CustomTokenRefreshView
 )
 
 urlpatterns = [
