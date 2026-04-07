@@ -9,6 +9,7 @@ export interface AdminUser {
     is_superuser: boolean;
     date_joined: string;
     mfa_enabled: boolean;
+    profile_picture?: string | null;
     password?: string;
     profile?: any;
 }
@@ -22,10 +23,11 @@ export const getAdminUsers = async (): Promise<AdminUser[]> => {
     return data.results || data;
 };
 
-export const createAdminUser = async (user: Partial<AdminUser>): Promise<AdminUser> => {
+export const createAdminUser = async (user: FormData | Partial<AdminUser>): Promise<AdminUser> => {
+    const isFormData = user instanceof FormData;
     const res = await apiFetch('/api/auth/admin/users/', {
         method: 'POST',
-        body: JSON.stringify(user),
+        body: isFormData ? user : JSON.stringify(user),
     });
     const data = await safeJson(res);
     if (!res.ok) {
@@ -34,10 +36,11 @@ export const createAdminUser = async (user: Partial<AdminUser>): Promise<AdminUs
     return data;
 };
 
-export const updateAdminUser = async (id: number, user: Partial<AdminUser>): Promise<AdminUser> => {
+export const updateAdminUser = async (id: number, user: FormData | Partial<AdminUser>): Promise<AdminUser> => {
+    const isFormData = user instanceof FormData;
     const res = await apiFetch(`/api/auth/admin/users/${id}/`, {
-        method: 'PUT',
-        body: JSON.stringify(user),
+        method: 'PATCH',
+        body: isFormData ? user : JSON.stringify(user),
     });
     const data = await safeJson(res);
     if (!res.ok) {

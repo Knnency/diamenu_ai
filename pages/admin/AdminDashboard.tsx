@@ -23,7 +23,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
   
   // Analytics Filter States
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'login' | 'logout'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'login' | 'logout' | 'profile_update'>('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -195,7 +195,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
             </div>
             
             <div className="flex bg-gray-50 dark:bg-gray-900 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
-              {(['all', 'login', 'logout'] as const).map((t) => (
+              {(['all', 'login', 'logout', 'profile_update'] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setFilterType(t)}
@@ -205,7 +205,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {t}
+                  {t.replace('_', ' ')}
                 </button>
               ))}
             </div>
@@ -240,9 +240,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                     <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-tighter ${
                       log.activity_type === 'login' 
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30' 
-                        : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30'
+                        : log.activity_type === 'logout'
+                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30'
+                        : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30'
                     }`}>
-                      {log.activity_type}
+                      {log.activity_type.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4">

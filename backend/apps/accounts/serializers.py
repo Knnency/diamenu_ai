@@ -53,6 +53,18 @@ class AdminUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'name', 'is_active', 'is_staff', 'is_superuser', 'date_joined', 'profile', 'mfa_enabled', 'profile_picture', 'password']
 
+    def validate_profile_picture(self, value):
+        if value:
+            # Check size (2MB limit)
+            if value.size > 2 * 1024 * 1024:
+                raise serializers.ValidationError("Image size must be less than 2MB.")
+            
+            # Check format
+            extension = value.name.split('.')[-1].lower()
+            if extension not in ['jpg', 'jpeg', 'png', 'webp']:
+                raise serializers.ValidationError("Only JPG, PNG, and WEBP formats are supported.")
+        return value
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         user = User.objects.create(**validated_data)

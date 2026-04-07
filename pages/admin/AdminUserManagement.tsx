@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getAdminUsers, deleteAdminUser, createAdminUser, updateAdminUser, AdminUser } from '../../services/adminService';
 import { UserModal } from './UserModal';
 import { Icons } from '../../constants';
+import { getMediaUrl } from '../../utils/urlUtils';
 
 const AdminUserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -116,9 +117,17 @@ const AdminUserManagement: React.FC = () => {
                   <tr key={user.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors group">
                     <td className="p-4 text-gray-400">{user.id}</td>
                     <td className="p-4 font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
+                      {user.profile_picture ? (
+                        <img 
+                          src={getMediaUrl(user.profile_picture) || ''} 
+                          alt={user.name} 
+                          className="w-8 h-8 rounded-full object-cover shadow-sm border border-gray-200 dark:border-gray-700"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       {user.name}
                     </td>
                     <td className="p-4 text-gray-600 dark:text-gray-400 font-medium">{user.email}</td>

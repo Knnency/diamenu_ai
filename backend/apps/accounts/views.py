@@ -555,7 +555,26 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Admin endpoint to retrieve, update, or delete a user."""
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
-    permission_classes = [IsAuthenticated, IsSuperUser]
+    def perform_update(self, serializer):
+        # Handle manual picture removal if requested
+        remove_picture = self.request.data.get('remove_profile_picture') == 'true'
+        
+        old_picture = self.get_object().profile_picture
+        instance = serializer.save()
+        
+        if remove_picture:
+            if instance.profile_picture:
+                instance.profile_picture.delete(save=False)
+                instance.profile_picture = None
+                instance.save(update_fields=['profile_picture'])
+        
+        # Log if picture changed or if other major profile data updated
+        new_picture = instance.profile_picture
+        if old_picture != new_picture:
+             UserActivity.objects.create(
+                user=instance, 
+                activity_type='profile_update'
+            )
 
     def perform_destroy(self, instance):
         from rest_framework.exceptions import ValidationError

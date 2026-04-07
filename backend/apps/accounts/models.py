@@ -161,6 +161,7 @@ class UserActivity(models.Model):
     ACTIVITY_TYPES = [
         ('login', 'Login'),
         ('logout', 'Logout'),
+        ('profile_update', 'Profile Update'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
     activity_type = models.CharField(max_length=10, choices=ACTIVITY_TYPES)
