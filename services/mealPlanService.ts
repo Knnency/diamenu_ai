@@ -9,10 +9,6 @@ export const getMealPlan = async (): Promise<Record<string, Record<string, strin
   });
   
   if (!res.ok) {
-    if (res.status === 404) {
-      // Return a 404 error we can catch to set initial default data
-      throw new Error('PLAN_NOT_FOUND');
-    }
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || 'Failed to fetch meal plan.');
   }

@@ -17,7 +17,7 @@ class MealPlanView(generics.GenericAPIView):
         """Get the most recent meal plan for the authenticated user."""
         plan = self.get_queryset().first()
         if not plan:
-            return Response({'detail': 'No meal plan found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'week_start': str(date.today()), 'plan_data': {}}, status=status.HTTP_200_OK)
         return Response(MealPlanSerializer(plan).data)
 
     def post(self, request):

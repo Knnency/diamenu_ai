@@ -54,12 +54,10 @@ export const MealPlanProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
 
         const savedPlan = await getMealPlan();
-        setPlanState(savedPlan);
+        setPlanState(savedPlan || {});
       } catch (err: any) {
-        if (err.message !== 'PLAN_NOT_FOUND') {
-          console.error("MealPlan initialization error:", err);
-          setError("Failed to load your latest meal plan.");
-        }
+        console.error("MealPlan initialization error:", err);
+        setError("Failed to load your latest meal plan.");
       } finally {
         setIsLoading(false);
       }
