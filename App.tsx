@@ -20,6 +20,7 @@ import TermsAndPolicy from './pages/TermsAndPolicy';
 import { ReviewModal, FloatingReviewButton } from './components/ReviewModal';
 import OnboardingModal from './components/OnboardingModal';
 import { ViewState } from './types';
+import { motion, AnimatePresence } from 'framer-motion';
 import { APP_NAME, Icons } from './constants';
 import { logout as authLogout, getStoredUser, sendRegistrationOTP, registerWithEmail } from './services/authService';
 import { Toaster } from 'sonner';
@@ -300,7 +301,17 @@ const App: React.FC = () => {
                             <span className="font-medium text-sm">Back</span>
                         </button>
                     )}
-                    {renderView()}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentView}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                        >
+                            {renderView()}
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
             </MealPlanProvider>
             )}
