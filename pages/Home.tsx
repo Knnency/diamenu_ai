@@ -93,7 +93,7 @@ const Home: React.FC<HomeProps> = ({ changeView }) => {
 
           {/* Action Button */}
           <button
-            onClick={() => changeView(ViewState.AUDITOR)}
+            onClick={() => changeView(ViewState.LOGIN)}
             className="bg-primary hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-[0_10px_20px_rgba(15,118,110,0.2)] transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
           >
             Start Auditing Free
