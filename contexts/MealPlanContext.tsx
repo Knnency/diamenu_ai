@@ -34,6 +34,13 @@ export const MealPlanProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Load initial data
   useEffect(() => {
     const init = async () => {
+      // Check for token before making the initial call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         // Load cached evaluations first for instant UI feedback

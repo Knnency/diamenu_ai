@@ -44,6 +44,40 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = [];
 };
 
+// --- Redirect Loop Protection ---
+const REDIRECT_THRESHOLD = 5;
+const REDIRECT_RESET_TIME = 60000; // 1 minute
+
+const checkRedirectLoop = () => {
+  const count = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
+  const lastRedirect = parseInt(sessionStorage.getItem('auth_last_redirect') || '0');
+  const now = Date.now();
+
+  if (now - lastRedirect > REDIRECT_RESET_TIME) {
+    sessionStorage.setItem('auth_redirect_count', '1');
+    sessionStorage.setItem('auth_last_redirect', now.toString());
+    return true;
+  }
+
+  if (count >= REDIRECT_THRESHOLD) {
+    console.error('Authentication redirect loop detected. Stopping redirect.');
+    return false;
+  }
+
+  sessionStorage.setItem('auth_redirect_count', (count + 1).toString());
+  sessionStorage.setItem('auth_last_redirect', now.toString());
+  return true;
+};
+
+const safeRedirect = (path: string) => {
+  if (window.location.pathname === path || window.location.pathname === '/login') return;
+  if (checkRedirectLoop()) {
+    window.location.href = path;
+  } else {
+    console.error('Redirect loop blocked to avoid infinite refresh.');
+  }
+};
+
 // --- Base fetch with auth ---
 const apiFetch = async (path: string, options: RequestInit = {}) => {
   let token = getAccessToken();
@@ -102,23 +136,23 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
           } else {
              processQueue(new Error('Missing tokens'));
              logout();
-             window.location.href = '/login';
+             safeRedirect('/login');
           }
         } else {
           processQueue(new Error('Refresh failed'));
           logout();
-          window.location.href = '/login';
+          safeRedirect('/login');
         }
       } catch (err) {
         processQueue(err as Error);
         logout();
-        window.location.href = '/login';
+        safeRedirect('/login');
       } finally {
         isRefreshing = false;
       }
     } else {
       logout();
-      window.location.href = '/login';
+      safeRedirect('/login');
     }
   }
 
@@ -129,6 +163,9 @@ const apiFetch = async (path: string, options: RequestInit = {}) => {
 export const safeJson = async (res: Response) => {
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
+    if (res.status === 401) {
+      throw new Error(`Authentication error (${res.status}): Access denied. This may be due to infrastructure security settings (e.g. Cloud Run IAM).`);
+    }
     throw new Error(`Server error (${res.status}): The backend returned an unexpected response. Make sure the Django server is running.`);
   }
   return res.json();
