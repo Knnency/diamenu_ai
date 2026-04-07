@@ -233,16 +233,17 @@ export const verifyRegistrationOTP = async (email: string, otp: string) => {
   return data.user;
 };
 
-export const loginWithGoogle = async (credential: string) => {
+export const loginWithGoogle = async (credential: string, flow?: 'login' | 'register') => {
   const res = await apiFetch('/api/auth/google/', {
     method: 'POST',
-    body: JSON.stringify({ credential }),
+    body: JSON.stringify({ credential, flow }),
   });
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.detail || 'Google login failed.');
   storeTokens(data.access, data.refresh, data.user);
   return data.user;
 };
+
 
 export const requestPasswordReset = async (email: string) => {
   const res = await apiFetch('/api/auth/password-reset/', {

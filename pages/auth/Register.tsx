@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { ViewState } from '../../types';
 import { Icons } from '../../constants';
-// @ts-ignore
 import { registerWithEmail, loginWithGoogle } from '../../services/authService';
+import { toast } from 'sonner';
 
 interface RegisterProps {
   changeView: (view: ViewState) => void;
   onRegister: (userData: { name: string; email: string; password: string }) => Promise<void>;
+  onLogin: (user: object) => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
+const Register: React.FC<RegisterProps> = ({ changeView, onRegister, onLogin }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,8 +58,9 @@ const Register: React.FC<RegisterProps> = ({ changeView, onRegister }) => {
     setError('');
     setIsLoading(true);
     try {
-      const user = await loginWithGoogle(credentialResponse.credential);
-      onRegister({ name: user.name || '', email: user.email || '', password: '' });
+      const user = await loginWithGoogle(credentialResponse.credential, 'register');
+      toast.success('Google account created and logged in successfully!');
+      onLogin(user);
     } catch (err: any) {
       setError(err.message || 'Google sign-up failed.');
     } finally {

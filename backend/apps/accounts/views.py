@@ -135,6 +135,7 @@ class GoogleLoginView(APIView):
 
     def post(self, request):
         credential = request.data.get('credential')
+        flow = request.data.get('flow')  # 'login' or 'register'
         if not credential:
             return Response({'detail': 'credential is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -158,6 +159,19 @@ class GoogleLoginView(APIView):
         name = id_info.get('name', email.split('@')[0])
 
         try:
+            # Check flow-specific logic
+            if flow == 'register' and User.objects.filter(email=email).exists():
+                return Response(
+                    {'detail': 'This Google account is already registered. Please sign in instead.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if flow == 'login' and not User.objects.filter(email=email).exists():
+                return Response(
+                    {'detail': 'Account not found, please sign up first.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             user, created = User.objects.get_or_create(email=email, defaults={'name': name})
             if created:
                 user.set_unusable_password()
@@ -173,11 +187,13 @@ class GoogleLoginView(APIView):
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
                 'user': UserSerializer(user).data,
+                'user_created': created
             })
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
             return Response({'detail': f'Server error during Google Login: {str(e)}', 'trace': error_trace}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 # ─── Password Reset via OTP ───────────────────────────────────────────────────

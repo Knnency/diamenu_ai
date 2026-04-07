@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { ViewState } from '../../types';
 import { Icons } from '../../constants';
-// @ts-ignore
 import { loginWithEmail, loginWithGoogle } from '../../services/authService';
+import { toast } from 'sonner';
 import MfaLoginModal from './MfaLoginModal';
 
 interface LoginProps {
@@ -34,6 +34,7 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
         setMfaToken(result.mfa_token);
         setShowMfaModal(true);
       } else {
+        toast.success('Welcome back to DiaMenu!');
         onLogin(result.user);
       }
     } catch (err: any) {
@@ -47,7 +48,8 @@ const Login: React.FC<LoginProps> = ({ changeView, onLogin }) => {
     setError('');
     setIsLoading(true);
     try {
-      const user = await loginWithGoogle(credentialResponse.credential);
+      const user = await loginWithGoogle(credentialResponse.credential, 'login');
+      toast.success('Google login successful!');
       onLogin(user);
     } catch (err: any) {
       setError(err.message || 'Google login failed.');

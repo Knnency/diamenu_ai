@@ -125,7 +125,7 @@ const App: React.FC = () => {
             case ViewState.DASHBOARD: return isAuthenticated ? <UserDashboard user={user} changeView={setCurrentView} /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.HEALTH_STATS: return isAuthenticated ? <HealthDashboard /> : <Login changeView={setCurrentView} onLogin={handleLogin} />;
             case ViewState.LOGIN: return <Login changeView={setCurrentView} onLogin={handleLogin} />;
-            case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleRegistrationStart} />;
+            case ViewState.REGISTER: return <Register changeView={setCurrentView} onRegister={handleRegistrationStart} onLogin={handleLogin} />;
             case ViewState.VERIFY_OTP: return <VerifyOTP
                 changeView={setCurrentView}
                 onVerify={handleRegistrationComplete}
