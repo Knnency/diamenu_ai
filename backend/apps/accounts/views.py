@@ -208,11 +208,11 @@ class PasswordResetRequestView(APIView):
         if not email:
             return Response({'detail': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Always respond with success to prevent email enumeration
+        # Check if user exists and is active
         try:
             user = User.objects.get(email=email, is_active=True)
         except User.DoesNotExist:
-            return Response({'detail': 'If an account with that email exists, an OTP has been sent.'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'No account found with this email address.'}, status=status.HTTP_404_NOT_FOUND)
 
         # Invalidate any previous unused OTPs for this user
         PasswordResetOTP.objects.filter(user=user, is_used=False).update(is_used=True)
