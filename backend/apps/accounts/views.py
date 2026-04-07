@@ -11,8 +11,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.throttling import AnonRateThrottle
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken
 import google.oauth2.id_token
 import google.auth.transport.requests
 
@@ -193,7 +194,7 @@ class PasswordResetRequestView(APIView):
 
         # Always respond with success to prevent email enumeration
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email=email, is_active=True)
         except User.DoesNotExist:
             return Response({'detail': 'If an account with that email exists, an OTP has been sent.'}, status=status.HTTP_200_OK)
 
@@ -633,3 +634,24 @@ class LogoutView(APIView):
             except Exception:
                 pass # Ignore if token is invalid or already blacklisted
         return Response({'detail': 'Logged out activity recorded.'})
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Handles race conditions where a token might already be blacklisted 
+    by a concurrent request during rotation.
+    """
+    def post(self, request, *args, **kwargs):
+        from django.db import IntegrityError
+        try:
+            return super().post(request, *args, **kwargs)
+        except IntegrityError:
+            # Handle duplicate key error in token_blacklist_blacklistedtoken
+            return Response(
+                {"detail": "This token has already been refreshed or blacklisted."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except (TokenError, InvalidToken) as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_401_UNAUTHORIZED
+            )

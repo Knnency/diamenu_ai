@@ -91,7 +91,16 @@ class SavedRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
+        user = self.context['request'].user
+        title = validated_data.get('title')
+        
+        # 1. Pre-check to provide a clean validation error in most cases
+        if SavedRecipe.objects.filter(user=user, title=title).exists():
+            raise serializers.ValidationError({"detail": "You have already saved a recipe with this title."})
+            
+        validated_data['user'] = user
+        
+        # 2. Catch IntegrityError for rare race conditions during concurrent requests
         from django.db import IntegrityError
         try:
             return super().create(validated_data)
