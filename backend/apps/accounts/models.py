@@ -37,7 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     mfa_enabled = models.BooleanField(default=False)
 
     # Profile integration
-    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True, max_length=512)
 
     objects = UserManager()
 
@@ -164,7 +164,7 @@ class UserActivity(models.Model):
         ('profile_update', 'Profile Update'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
-    activity_type = models.CharField(max_length=10, choices=ACTIVITY_TYPES)
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
