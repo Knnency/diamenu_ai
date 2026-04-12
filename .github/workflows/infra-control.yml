@@ -1,0 +1,63 @@
+name: Infrastructure Control
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform (hibernate or wakeup)'
+        required: true
+        default: 'hibernate'
+        type: choice
+        options:
+          - hibernate
+          - wakeup
+
+env:
+  PROJECT_ID: diamenu-489712
+  REGION: asia-east1
+  SQL_INSTANCE: vetoniodb
+  SERVICE_BACKEND: diamenu-backend
+  SERVICE_FRONTEND: diamenu-frontend
+
+jobs:
+  manage-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Hibernate (Stop Infrastructure)
+        if: github.event.inputs.action == 'hibernate'
+        run: |
+          echo "Hibernating Cloud SQL instance: ${{ env.SQL_INSTANCE }}..."
+          gcloud sql instances patch ${{ env.SQL_INSTANCE }} --activation-policy=NEVER --project=${{ env.PROJECT_ID }}
+          
+          echo "Scaling Cloud Run Backend to 0..."
+          gcloud run services update ${{ env.SERVICE_BACKEND }} --max-instances=0 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          
+          echo "Scaling Cloud Run Frontend to 0..."
+          gcloud run services update ${{ env.SERVICE_FRONTEND }} --max-instances=0 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          
+          echo "Infrastructure successfully hibernated to save costs."
+
+      - name: Wake Up (Start Infrastructure)
+        if: github.event.inputs.action == 'wakeup'
+        run: |
+          echo "Starting Cloud SQL instance: ${{ env.SQL_INSTANCE }}..."
+          gcloud sql instances patch ${{ env.SQL_INSTANCE }} --activation-policy=ALWAYS --project=${{ env.PROJECT_ID }}
+          
+          echo "Scaling Cloud Run Backend to 10..."
+          gcloud run services update ${{ env.SERVICE_BACKEND }} --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          
+          echo "Scaling Cloud Run Frontend to 10..."
+          gcloud run services update ${{ env.SERVICE_FRONTEND }} --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          
+          echo "Infrastructure successfully woken up."
