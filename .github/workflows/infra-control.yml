@@ -38,8 +38,14 @@ jobs:
       - name: Hibernate (Stop Infrastructure)
         if: github.event.inputs.action == 'hibernate'
         run: |
-          echo "Hibernating Cloud SQL instance: ${{ env.SQL_INSTANCE }}..."
-          gcloud sql instances patch ${{ env.SQL_INSTANCE }} --activation-policy=NEVER --project=${{ env.PROJECT_ID }}
+          echo "Checking Cloud SQL instance: ${{ env.SQL_INSTANCE }}..."
+          CURRENT_POLICY=$(gcloud sql instances describe ${{ env.SQL_INSTANCE }} --format="value(settings.activationPolicy)" --project=${{ env.PROJECT_ID }})
+          if [ "$CURRENT_POLICY" != "NEVER" ]; then
+            echo "Hibernating Cloud SQL instance..."
+            gcloud sql instances patch ${{ env.SQL_INSTANCE }} --activation-policy=NEVER --project=${{ env.PROJECT_ID }}
+          else
+            echo "Cloud SQL instance is already hibernated."
+          fi
           
           echo "Scaling Cloud Run Backend to 0..."
           gcloud run services update ${{ env.SERVICE_BACKEND }} --max-instances=0 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
@@ -52,8 +58,14 @@ jobs:
       - name: Wake Up (Start Infrastructure)
         if: github.event.inputs.action == 'wakeup'
         run: |
-          echo "Starting Cloud SQL instance: ${{ env.SQL_INSTANCE }}..."
-          gcloud sql instances patch ${{ env.SQL_INSTANCE }} --activation-policy=ALWAYS --project=${{ env.PROJECT_ID }}
+          echo "Checking Cloud SQL instance: ${{ env.SQL_INSTANCE }}..."
+          CURRENT_POLICY=$(gcloud sql instances describe ${{ env.SQL_INSTANCE }} --format="value(settings.activationPolicy)" --project=${{ env.PROJECT_ID }})
+          if [ "$CURRENT_POLICY" != "ALWAYS" ]; then
+            echo "Starting Cloud SQL instance..."
+            gcloud sql instances patch ${{ env.SQL_INSTANCE }} --activation-policy=ALWAYS --project=${{ env.PROJECT_ID }}
+          else
+            echo "Cloud SQL instance is already awake."
+          fi
           
           echo "Scaling Cloud Run Backend to 10..."
           gcloud run services update ${{ env.SERVICE_BACKEND }} --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
