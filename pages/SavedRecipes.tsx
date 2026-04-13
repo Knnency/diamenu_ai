@@ -252,7 +252,7 @@ const SavedRecipes: React.FC = () => {
                 </div>
                 <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Diabetic Safety</div>
                 {/* Tooltip */}
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-xl p-3 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 text-left">
+                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 w-64 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-xl p-3 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 text-left">
                   <div className="font-semibold mb-1" style={{ color: avgSafetyMeta.color }}>
                     {avgSafetyMeta.label} ({avgSafetyMeta.score}%)
                   </div>
