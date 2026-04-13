@@ -47,11 +47,11 @@ jobs:
             echo "Cloud SQL instance is already hibernated."
           fi
           
-          echo "Scaling Cloud Run Backend to 0..."
-          gcloud run services update ${{ env.SERVICE_BACKEND }} --max-instances=0 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          echo "Scaling Cloud Run Backend to 0 (min=0, max=1)..."
+          gcloud run services update ${{ env.SERVICE_BACKEND }} --min-instances=0 --max-instances=1 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
           
-          echo "Scaling Cloud Run Frontend to 0..."
-          gcloud run services update ${{ env.SERVICE_FRONTEND }} --max-instances=0 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          echo "Scaling Cloud Run Frontend to 0 (min=0, max=1)..."
+          gcloud run services update ${{ env.SERVICE_FRONTEND }} --min-instances=0 --max-instances=1 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
           
           echo "Infrastructure successfully hibernated to save costs."
 
@@ -67,10 +67,10 @@ jobs:
             echo "Cloud SQL instance is already awake."
           fi
           
-          echo "Scaling Cloud Run Backend to 10..."
-          gcloud run services update ${{ env.SERVICE_BACKEND }} --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          echo "Scaling Cloud Run Backend to max=10..."
+          gcloud run services update ${{ env.SERVICE_BACKEND }} --min-instances=0 --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
           
-          echo "Scaling Cloud Run Frontend to 10..."
-          gcloud run services update ${{ env.SERVICE_FRONTEND }} --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+          echo "Scaling Cloud Run Frontend to max=10..."
+          gcloud run services update ${{ env.SERVICE_FRONTEND }} --min-instances=0 --max-instances=10 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
           
           echo "Infrastructure successfully woken up."
