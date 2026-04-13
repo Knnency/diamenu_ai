@@ -3,6 +3,7 @@ import { Icons } from '../constants';
 import { SavedRecipe, getSavedRecipes, deleteSavedRecipe } from '../services/authService';
 import { getMealPlan, saveMealPlan } from '../services/mealPlanService';
 import { getMediaUrl } from '../utils/urlUtils';
+import { diabetesSafetyScorer } from '../services/DiabetesSafetyScorer';
 
 import RecipePreviewModal from '../components/RecipePreviewModal';
 import { toast } from 'sonner';
@@ -113,11 +114,9 @@ const SavedRecipes: React.FC = () => {
     recipe.dietary_options.some(option => option.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Calculate recipe statistics
+  // Calculate recipe statistics using the OOP DiabetesSafetyScorer service
   const totalRecipes = recipes.length;
-  const avgSafetyScore = recipes.length > 0 
-    ? Math.round(recipes.reduce((sum, recipe) => sum + (recipe.tags.length * 10), 0) / recipes.length)
-    : 0;
+  const avgSafetyMeta = diabetesSafetyScorer.evaluateCollection(recipes);
 
   if (loading) {
     return (
@@ -234,14 +233,34 @@ const SavedRecipes: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400">Your personal collection of diabetes-friendly meals.</p>
           </div>
           {totalRecipes > 0 && (
-            <div className="flex gap-4 mt-4 sm:mt-0">
+            <div className="flex gap-4 mt-4 sm:mt-0 items-center">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">{totalRecipes}</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Recipes</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{avgSafetyScore}%</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Avg Score</div>
+              {/* Diabetic Safety Score Badge */}
+              <div
+                className="relative group flex flex-col items-center px-4 py-2 rounded-2xl border cursor-help transition-all"
+                style={{ borderColor: avgSafetyMeta.color, background: avgSafetyMeta.bg }}
+                title={avgSafetyMeta.description}
+              >
+                <div className="text-2xl font-bold" style={{ color: avgSafetyMeta.color }}>
+                  {avgSafetyMeta.score}%
+                </div>
+                <div className="text-xs font-semibold tracking-wide" style={{ color: avgSafetyMeta.color }}>
+                  {avgSafetyMeta.label}
+                </div>
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Diabetic Safety</div>
+                {/* Tooltip */}
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-xl p-3 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 text-left">
+                  <div className="font-semibold mb-1" style={{ color: avgSafetyMeta.color }}>
+                    {avgSafetyMeta.label} ({avgSafetyMeta.score}%)
+                  </div>
+                  <p className="leading-relaxed">{avgSafetyMeta.description}</p>
+                  <div className="mt-2 pt-2 border-t border-gray-700 text-gray-400">
+                    Based on ADA 2024 &amp; WHO dietary guidelines for diabetes management.
+                  </div>
+                </div>
               </div>
             </div>
           )}
