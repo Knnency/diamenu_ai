@@ -54,3 +54,5 @@ db.sqlite3-journal
 media/
 staticfiles/
 
+migrated_prompt_history
+
